@@ -6,7 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.miquiis.skinchangerapi.SkinChangerAPI;
 import me.miquiis.skinchangerapi.common.SkinLocation;
-import me.miquiis.wardrobe.server.database.Database;
+import me.miquiis.wardrobe.database.server.Database;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -22,6 +22,7 @@ public class ModCommand {
                 .then(Commands.literal("load")
                         .then(Commands.argument("url", StringArgumentType.string()).executes(context -> {
                             ServerPlayerEntity serverPlayer = context.getSource().asPlayer();
+
                             SkinChangerAPI.setPlayerSkin(serverPlayer, new SkinLocation(UUID.randomUUID().toString(), StringArgumentType.getString(context, "url")));
                             return 1;
                         })

@@ -1,4 +1,4 @@
-package me.miquiis.wardrobe.server.database;
+package me.miquiis.wardrobe.database.server;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -74,7 +74,7 @@ public class MySQL {
 	{
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				if (connection.isClosed())
+				if (connection == null || connection.isClosed())
 					connect();
 				connection.createStatement().executeUpdate(query);
 			} catch (SQLException e) {
@@ -89,7 +89,7 @@ public class MySQL {
 		return CompletableFuture.supplyAsync(() ->
 		{
 			try {
-				if (connection.isClosed())
+				if (connection == null || connection.isClosed())
 					connect();
 
 				Statement st = connection.createStatement();
@@ -112,7 +112,7 @@ public class MySQL {
 	{
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				if (connection.isClosed())
+				if (connection == null || connection.isClosed())
 					connect();
 				return connection.createStatement().executeQuery(query);
 			} catch (SQLException e) {
@@ -124,7 +124,7 @@ public class MySQL {
 
 	public void update(String query) {
 		try {
-			if (connection.isClosed())
+			if (connection == null || connection.isClosed())
 				connect();
 			connection.createStatement().executeUpdate(query);
 		} catch (SQLException e) {
@@ -138,7 +138,7 @@ public class MySQL {
 	 */
 	public ResultSet getResult(String query) {
 		try {
-			if (connection.isClosed())
+			if (connection == null || connection.isClosed())
 				connect();
 			return connection.createStatement().executeQuery(query);
 		} catch (SQLException e) {
