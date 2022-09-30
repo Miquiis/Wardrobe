@@ -1,18 +1,26 @@
 buildscript {
     repositories {
+        gradlePluginPortal()
         maven { url = 'https://maven.minecraftforge.net' }
         maven { url = 'https://repo.spongepowered.org/maven'}
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
         mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+        classpath "gradle.plugin.com.github.johnrengelman:shadow:7.1.2"
     }
 }
+
+apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
+apply plugin: 'java'
 
 version = "${mod_version}"
 group = "${mod_package}"
@@ -73,6 +81,19 @@ minecraft {
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+shadowJar {
+
+    dependencies {
+        include(dependency('mysql:mysql-connector-java:8.0.30'))
+    }
+
+    classifier '' // Replace the default JAR
+}
+
+reobf {
+    shadowJar {} // Reobfuscate the shadowed JAR
+}
 
 dependencies {
     minecraft "net.minecraftforge:forge:${forge_version}"
