@@ -1,0 +1,43 @@
+package me.miquiis.wardrobe;
+
+import me.miquiis.wardrobe.common.Configs;
+import me.miquiis.wardrobe.common.ref.ModInformation;
+import me.miquiis.wardrobe.server.network.ModNetwork;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+
+@Mod(ModInformation.MOD_ID)
+public class Wardrobe
+{
+    private static Wardrobe instance;
+    public static final String MOD_ID = ModInformation.MOD_ID;
+
+    public Wardrobe() {
+        final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        modEventBus.addListener(this::setup);
+        MinecraftForge.EVENT_BUS.register(this);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Configs.SERVER_CONFIG_SPEC);
+    }
+
+    private void setup(final FMLCommonSetupEvent event)
+    {
+        instance = this;
+        ModNetwork.init();
+    }
+
+    @SubscribeEvent
+    public void serverStartup(final FMLServerStartingEvent event)
+    {
+    }
+
+    public static Wardrobe getInstance() {
+        return instance;
+    }
+}
