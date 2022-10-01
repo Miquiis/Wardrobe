@@ -12,12 +12,14 @@ import java.util.function.Supplier;
 
 public class RequestPagePacket {
 
+   private String searchBar;
    private WardrobePage.PageSort pageSort;
    private boolean isAscending;
    private int page;
    private int startsAt;
 
-   public RequestPagePacket(WardrobePage.PageSort pageSort, boolean isAscending, int page, int startsAt) {
+   public RequestPagePacket(String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int page, int startsAt) {
+      this.searchBar = searchBar;
       this.pageSort = pageSort;
       this.isAscending = isAscending;
       this.page = page;
@@ -25,16 +27,16 @@ public class RequestPagePacket {
    }
 
    public static void encodePacket(RequestPagePacket packet, PacketBuffer buf) {
-      buf.writeEnumValue(packet.pageSort).writeBoolean(packet.isAscending).writeInt(packet.page).writeInt(packet.startsAt);
+      buf.writeString(packet.searchBar).writeEnumValue(packet.pageSort).writeBoolean(packet.isAscending).writeInt(packet.page).writeInt(packet.startsAt);
    }
 
    public static RequestPagePacket decodePacket(PacketBuffer buf) {
-      return new RequestPagePacket(buf.readEnumValue(WardrobePage.PageSort.class), buf.readBoolean(), buf.readInt(), buf.readInt());
+      return new RequestPagePacket(buf.readString(), buf.readEnumValue(WardrobePage.PageSort.class), buf.readBoolean(), buf.readInt(), buf.readInt());
    }
 
    public static void handlePacket(final RequestPagePacket msg, Supplier<NetworkEvent.Context> ctx) {
-      new Database().fetchPage(msg.pageSort, msg.isAscending, msg.startsAt).thenAcceptAsync(skinLocations -> {
-         ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> ctx.get().getSender()), new SendPagePacket(skinLocations, msg.pageSort, msg.isAscending, msg.page));
+      new Database().fetchPage(msg.searchBar, msg.pageSort, msg.isAscending, msg.startsAt).thenAcceptAsync(skinLocations -> {
+         ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> ctx.get().getSender()), new SendPagePacket(skinLocations, msg.searchBar, msg.pageSort, msg.isAscending, msg.page));
       });
    }
 }

@@ -48,10 +48,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class CustomPlayerRenderer extends LivingRenderer<AbstractClientPlayerEntity, PlayerModel<AbstractClientPlayerEntity>> {
 
    private ResourceLocation playerSkin;
+   private float progress;
 
-   public CustomPlayerRenderer(EntityRendererManager renderManager, ResourceLocation playerSkin) {
-      this(renderManager, false);
+   public CustomPlayerRenderer(EntityRendererManager renderManager, ResourceLocation playerSkin, boolean isSlim, float progress) {
+      this(renderManager, isSlim);
       this.playerSkin = playerSkin;
+      this.progress = progress;
    }
 
    public CustomPlayerRenderer(EntityRendererManager renderManager, boolean useSmallArms) {
@@ -69,13 +71,45 @@ public class CustomPlayerRenderer extends LivingRenderer<AbstractClientPlayerEnt
    }
 
    public void render(AbstractClientPlayerEntity entityIn, float entityYaw, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn) {
-      this.setModelVisibilities(entityIn);
+      this.setModelVisibilities(entityIn, progress);
       super.render(entityIn, entityYaw, partialTicks, matrixStackIn, bufferIn, packedLightIn);
       //renderName(entityIn, new StringTextComponent("Test Name"), matrixStackIn, bufferIn, packedLightIn);
    }
 
    public Vector3d getRenderOffset(AbstractClientPlayerEntity entityIn, float partialTicks) {
       return entityIn.isCrouching() ? new Vector3d(0.0D, -0.125D, 0.0D) : super.getRenderOffset(entityIn, partialTicks);
+   }
+   private void setModelVisibilities(AbstractClientPlayerEntity clientPlayer, float progress) {
+      PlayerModel<AbstractClientPlayerEntity> playermodel = this.getEntityModel();
+      if (clientPlayer.isSpectator()) {
+         playermodel.setVisible(false);
+         playermodel.bipedHead.showModel = true;
+         playermodel.bipedHeadwear.showModel = true;
+      } else {
+         playermodel.setVisible(true);
+         int i = 1;
+         playermodel.bipedHeadwear.showModel = progress >= 0.14 * i++;
+         playermodel.bipedBodyWear.showModel = progress >= 0.14 * i++;
+         playermodel.bipedLeftLegwear.showModel = progress >= 0.14 * i++;
+         playermodel.bipedRightLegwear.showModel = progress >= 0.14 * i++;
+         playermodel.bipedLeftArmwear.showModel = progress >= 0.14 * i++;
+         playermodel.bipedRightArmwear.showModel = progress >= 0.14 * i;
+         playermodel.isSneak = clientPlayer.isCrouching();
+         BipedModel.ArmPose bipedmodel$armpose = func_241741_a_(clientPlayer, Hand.MAIN_HAND);
+         BipedModel.ArmPose bipedmodel$armpose1 = func_241741_a_(clientPlayer, Hand.OFF_HAND);
+         if (bipedmodel$armpose.func_241657_a_()) {
+            bipedmodel$armpose1 = clientPlayer.getHeldItemOffhand().isEmpty() ? BipedModel.ArmPose.EMPTY : BipedModel.ArmPose.ITEM;
+         }
+
+         if (clientPlayer.getPrimaryHand() == HandSide.RIGHT) {
+            playermodel.rightArmPose = bipedmodel$armpose;
+            playermodel.leftArmPose = bipedmodel$armpose1;
+         } else {
+            playermodel.rightArmPose = bipedmodel$armpose1;
+            playermodel.leftArmPose = bipedmodel$armpose;
+         }
+      }
+
    }
 
    private void setModelVisibilities(AbstractClientPlayerEntity clientPlayer) {
@@ -86,12 +120,12 @@ public class CustomPlayerRenderer extends LivingRenderer<AbstractClientPlayerEnt
          playermodel.bipedHeadwear.showModel = true;
       } else {
          playermodel.setVisible(true);
-         playermodel.bipedHeadwear.showModel = clientPlayer.isWearing(PlayerModelPart.HAT);
-         playermodel.bipedBodyWear.showModel = clientPlayer.isWearing(PlayerModelPart.JACKET);
-         playermodel.bipedLeftLegwear.showModel = clientPlayer.isWearing(PlayerModelPart.LEFT_PANTS_LEG);
-         playermodel.bipedRightLegwear.showModel = clientPlayer.isWearing(PlayerModelPart.RIGHT_PANTS_LEG);
-         playermodel.bipedLeftArmwear.showModel = clientPlayer.isWearing(PlayerModelPart.LEFT_SLEEVE);
-         playermodel.bipedRightArmwear.showModel = clientPlayer.isWearing(PlayerModelPart.RIGHT_SLEEVE);
+         playermodel.bipedHeadwear.showModel = true;
+         playermodel.bipedBodyWear.showModel = true;
+         playermodel.bipedLeftLegwear.showModel = true;
+         playermodel.bipedRightLegwear.showModel = true;
+         playermodel.bipedLeftArmwear.showModel = true;
+         playermodel.bipedRightArmwear.showModel = true;
          playermodel.isSneak = clientPlayer.isCrouching();
          BipedModel.ArmPose bipedmodel$armpose = func_241741_a_(clientPlayer, Hand.MAIN_HAND);
          BipedModel.ArmPose bipedmodel$armpose1 = func_241741_a_(clientPlayer, Hand.OFF_HAND);
@@ -154,23 +188,6 @@ public class CustomPlayerRenderer extends LivingRenderer<AbstractClientPlayerEnt
 
    @Override
    protected void renderName(AbstractClientPlayerEntity entityIn, ITextComponent displayNameIn, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn) {
-      boolean flag = !entityIn.isDiscrete();
-      float f = entityIn.getHeight() + 0.3F;
-      int i = "deadmau5".equals(displayNameIn.getString()) ? -10 : 0;
-      matrixStackIn.push();
-      matrixStackIn.translate(0.0D, (double)f, 0.0D);
-      matrixStackIn.rotate(this.renderManager.getCameraOrientation());
-      matrixStackIn.scale(-0.025F, -0.025F, 0.025F);
-      Matrix4f matrix4f = matrixStackIn.getLast().getMatrix();
-      float f1 = Minecraft.getInstance().gameSettings.getTextBackgroundOpacity(0.25F);
-      int j = (int)(f1 * 255.0F) << 24;
-      FontRenderer fontrenderer = this.getFontRendererFromRenderManager();
-      float f2 = (float)(-fontrenderer.getStringPropertyWidth(displayNameIn) / 2);
-      fontrenderer.func_243247_a(displayNameIn, f2, (float)i, 553648127, false, matrix4f, bufferIn, flag, j, packedLightIn);
-      if (flag) {
-         fontrenderer.func_243247_a(displayNameIn, f2, (float)i, -1, false, matrix4f, bufferIn, false, 0, packedLightIn);
-      }
-      matrixStackIn.pop();
    }
 
    public void renderRightArm(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, AbstractClientPlayerEntity playerIn) {

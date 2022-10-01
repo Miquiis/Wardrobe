@@ -53,12 +53,10 @@ public class Wardrobe
         serverSkinLocationCache = new LocalCache<>();
     }
 
-    @OnlyIn(Dist.DEDICATED_SERVER)
     public LocalCache<SkinLocation> getServerSkinLocationCache() {
         return serverSkinLocationCache;
     }
 
-    @OnlyIn(Dist.CLIENT)
     public LocalCache<WardrobePage> getClientWardrobePageCache() {
         return clientWardrobePageCache;
     }

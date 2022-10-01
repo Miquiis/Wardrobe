@@ -12,13 +12,15 @@ public class WardrobePage {
         SLIM
     }
 
+    private String searchBar;
     private PageSort pageSorted;
     private boolean isAscending;
     private List<SkinLocation> contents;
     private int page;
 
-    public WardrobePage(PageSort pageSorted, boolean isAscending, List<SkinLocation> contents, int page)
+    public WardrobePage(String searchBar, PageSort pageSorted, boolean isAscending, List<SkinLocation> contents, int page)
     {
+        this.searchBar = searchBar;
         this.pageSorted = pageSorted;
         this.isAscending = isAscending;
         this.contents = contents;
@@ -39,5 +41,9 @@ public class WardrobePage {
 
     public int getPage() {
         return page;
+    }
+
+    public String getSearchBar() {
+        return searchBar;
     }
 }

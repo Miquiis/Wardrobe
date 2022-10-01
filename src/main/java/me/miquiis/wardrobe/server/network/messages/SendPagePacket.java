@@ -16,12 +16,14 @@ import java.util.function.Supplier;
 public class SendPagePacket {
 
    private List<SkinLocation> pageContents;
+   private String searchBar;
    private WardrobePage.PageSort pageSort;
    private boolean isAscending;
    private int page;
 
-   public SendPagePacket(List<SkinLocation> pageContents, WardrobePage.PageSort pageSort, boolean isAscending, int page) {
+   public SendPagePacket(List<SkinLocation> pageContents, String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int page) {
       this.pageContents = pageContents;
+      this.searchBar = searchBar;
       this.pageSort = pageSort;
       this.isAscending = isAscending;
       this.page = page;
@@ -34,7 +36,7 @@ public class SendPagePacket {
          pageContents.add(SkinLocation.SKIN_LOCATION.write(skinLocation));
       });
       compoundNBT.put("PageContents", pageContents);
-      buf.writeCompoundTag(compoundNBT).writeEnumValue(packet.pageSort).writeBoolean(packet.isAscending).writeInt(packet.page);
+      buf.writeCompoundTag(compoundNBT).writeString(packet.searchBar).writeEnumValue(packet.pageSort).writeBoolean(packet.isAscending).writeInt(packet.page);
    }
 
    public static SendPagePacket decodePacket(PacketBuffer buf) {
@@ -44,11 +46,15 @@ public class SendPagePacket {
       listNBT.forEach(inbt -> {
          skinLocations.add(SkinLocation.SKIN_LOCATION.read(inbt));
       });
-      return new SendPagePacket(skinLocations, buf.readEnumValue(WardrobePage.PageSort.class), buf.readBoolean(), buf.readInt());
+      return new SendPagePacket(skinLocations, buf.readString(), buf.readEnumValue(WardrobePage.PageSort.class), buf.readBoolean(), buf.readInt());
    }
 
    public static void handlePacket(final SendPagePacket msg, Supplier<NetworkEvent.Context> ctx) {
       PacketHandler.handleSendPagePacket(msg);
+   }
+
+   public String getSearchBar() {
+      return searchBar;
    }
 
    public int getPage() {

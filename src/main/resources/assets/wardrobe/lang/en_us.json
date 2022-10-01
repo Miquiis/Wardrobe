@@ -1,0 +1,10 @@
+{
+  "wardrobe.screen.hover.sort_button.sort": "Sort By: ",
+  "wardrobe.screen.hover.sort_button.order": "Order: ",
+  "wardrobe.screen.hover.sort_button.ascend": "Ascending",
+  "wardrobe.screen.hover.sort_button.descend": "Descending",
+  "wardrobe.screen.hover.sort_button.alphabetic": "A-Z",
+  "wardrobe.screen.hover.sort_button.last_updated": "Last Updated",
+  "wardrobe.screen.hover.sort_button.slim": "Small Arms",
+  "wardrobe.screen.hover.refresh_button": "Refresh Page"
+}

@@ -42,17 +42,20 @@ public class Database {
         return "uid " + (isAscending ? "ASC" : "DESC");
     }
 
-    public CompletableFuture<List<SkinLocation>> fetchPage(WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
+    public CompletableFuture<List<SkinLocation>> fetchPage(String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
     {
-        return mySQL.asyncResult("SELECT * FROM skins_dev WHERE uid>=" + startingAt + " ORDER BY " + getSortKey(pageSort, isAscending) + ";").handleAsync((resultSet, throwable) -> {
+        return mySQL.asyncResult("SELECT * FROM skins_dev WHERE uid>=" + startingAt + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + ";").handleAsync((resultSet, throwable) -> {
+            System.out.println(searchBar);
             List<SkinLocation> skinLocations = new ArrayList<>();
             try {
                 while (resultSet.next())
                 {
+                    System.out.println(resultSet.getString("name"));
                     skinLocations.add(new SkinLocation(resultSet.getString("name"), resultSet.getString("url"), resultSet.getBoolean("slim")));
                 }
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
+                if (throwable != null) throwable.printStackTrace();
             } finally {
                 close();
             }
@@ -74,7 +77,7 @@ public class Database {
     public CompletableFuture<SkinLocation> fetchSkinLocation(String skinId)
     {
         Predicate<LocalCache<SkinLocation>.Cached> cachedPredicate = cached -> cached.getValue().getSkinId().equals(skinId);
-        if (Wardrobe.getInstance().getServerSkinLocationCache().hasInCache(cachedPredicate))
+        if (Wardrobe.getInstance().getServerSkinLocationCache().hasCache(cachedPredicate))
         {
             Optional<LocalCache<SkinLocation>.Cached> cached = Wardrobe.getInstance().getServerSkinLocationCache().getCache(cachedPredicate);
             if (cached.isPresent())
@@ -82,13 +85,13 @@ public class Database {
                 return CompletableFuture.completedFuture(cached.get().getValue());
             }
         }
-        return mySQL.asyncResult("SELECT * FROM skins WHERE id='" + skinId + "'").handleAsync((resultSet, throwable) -> {
+        return mySQL.asyncResult("SELECT * FROM skins_dev WHERE name='" + skinId + "'").handleAsync((resultSet, throwable) -> {
             try
             {
                 if (resultSet.next())
                 {
                     SkinLocation skinLocation = new SkinLocation(skinId, resultSet.getString("url"), resultSet.getBoolean("slim"));
-                    Wardrobe.getInstance().getServerSkinLocationCache().cache(skinLocation);
+                    Wardrobe.getInstance().getServerSkinLocationCache().cache(skinLocation, cachedPredicate);
                     return skinLocation;
                 }
             } catch (SQLException e) {
@@ -98,7 +101,7 @@ public class Database {
                 close();
             }
             SkinLocation skinLocation = new SkinLocation(skinId, "");
-            Wardrobe.getInstance().getServerSkinLocationCache().cache(skinLocation);
+            Wardrobe.getInstance().getServerSkinLocationCache().cache(skinLocation, cachedPredicate);
             return skinLocation;
         });
     }
