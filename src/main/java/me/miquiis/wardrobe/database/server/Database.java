@@ -45,12 +45,10 @@ public class Database {
     public CompletableFuture<List<SkinLocation>> fetchPage(String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
     {
         return mySQL.asyncResult("SELECT * FROM skins_dev WHERE uid>=" + startingAt + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + ";").handleAsync((resultSet, throwable) -> {
-            System.out.println(searchBar);
             List<SkinLocation> skinLocations = new ArrayList<>();
             try {
                 while (resultSet.next())
                 {
-                    System.out.println(resultSet.getString("name"));
                     skinLocations.add(new SkinLocation(resultSet.getString("name"), resultSet.getString("url"), resultSet.getBoolean("slim")));
                 }
             } catch (Exception e) {
@@ -115,7 +113,6 @@ public class Database {
     {
         if (mySQL != null)
         {
-            System.out.println("Disconnect");
             mySQL.disconnect();
         }
     }

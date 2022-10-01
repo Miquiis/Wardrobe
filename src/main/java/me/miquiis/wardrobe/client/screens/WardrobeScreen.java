@@ -139,17 +139,14 @@ public class WardrobeScreen extends Screen {
     {
         if (!canRefresh) return;
         Optional<LocalCache<WardrobePage>.Cached> cachedPage = Wardrobe.getInstance().getClientWardrobePageCache().getCache(cached -> cached.getValue().getSearchBar().equals(searchField.getText()) && cached.getValue().isAscending() == isAscending && cached.getValue().getPageSorted() == pageSort && cached.getValue().getPage() == currentPage);
-        System.out.println(cachedPage.isPresent());
         if (!forceRefresh && cachedPage.isPresent())
         {
             // Load
-            System.out.println("Loading from Cache");
             pageContent = cachedPage.get().getValue();
             pageContent.getContents().forEach(SkinChangerAPIClient::loadSkin);
             isLoading = false;
         } else {
             // Request
-            System.out.println("Requesting from Server");
             ModNetwork.CHANNEL.sendToServer(new RequestPagePacket(searchField.getText(), pageSort, isAscending, currentPage, 1));
             isLoading = true;
         }
@@ -273,7 +270,6 @@ public class WardrobeScreen extends Screen {
                             SkinLocation skinLocation = pageContent.getContents().get(currentId);
                             addButton(new WardrobeSkinButton(width / 2 - wardrobeWidth + 33 * i - 12, height / 2 - 52 + 50 * j - 50, 25, 50, new StringTextComponent(skinLocation.getSkinId()), currentId, p_onPress_1_ -> {
                                 SkinLocation skin = pageContent.getContents().get(((WardrobeSkinButton)p_onPress_1_).buttonId);
-                                System.out.println(skin.getSkinLocation());
                                 ModNetwork.CHANNEL.sendToServer(new LoadSkinPacket(skin));
                             }));
                             drawPlayerOnScreen(width / 2 - wardrobeWidth + 33 * i, height / 2 - 52 + 50 * j, 25, mouseX, mouseY, skinLocation.getSkinLocation(), skinLocation.isSlim());

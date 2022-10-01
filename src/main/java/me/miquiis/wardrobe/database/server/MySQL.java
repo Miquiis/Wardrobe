@@ -38,6 +38,10 @@ public class MySQL {
 	 */
 	public boolean connect() {
 		try {
+			Class.forName("me.miquiis.shadow.com.mysql.jdbc.Driver").newInstance();
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException ignored) {
+		}
+		try {
 			connection = DriverManager.getConnection(
 					"jdbc:mysql://" + host + ":" + port + "/" + database + "?autoReconnect=true", username, password);
 			return true;

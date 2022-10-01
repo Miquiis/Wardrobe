@@ -49,7 +49,6 @@ public class LocalCache<T> {
     {
         if (replaceIf != null)
         {
-            System.out.println("replaced");
             cache.removeIf(replaceIf);
         }
         cache.add(new Cached(cacheValue));

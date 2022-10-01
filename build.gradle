@@ -82,25 +82,27 @@ minecraft {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-shadowJar {
-
-    dependencies {
-        include(dependency('mysql:mysql-connector-java:8.0.30'))
-    }
-
-    classifier '' // Replace the default JAR
-}
-
-reobf {
-    shadowJar {} // Reobfuscate the shadowed JAR
-}
-
 dependencies {
     minecraft "net.minecraftforge:forge:${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     implementation fg.deobf('curse.maven:skinchangerapi-683061:4013524')
     implementation fg.deobf('curse.maven:obfuscate-289380:3740120')
     implementation 'mysql:mysql-connector-java:8.0.30'
+}
+
+shadowJar {
+
+    dependencies {
+        include(dependency('mysql:mysql-connector-java:8.0.30'))
+    }
+
+    relocate 'com.mysql', 'me.miquiis.shadow.com.mysql'
+
+    classifier '' // Replace the default JAR
+}
+
+reobf {
+    shadowJar {} // Reobfuscate the shadowed JAR
 }
 
 mixin {
