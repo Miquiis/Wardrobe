@@ -1,26 +1,23 @@
 buildscript {
     repositories {
-        gradlePluginPortal()
         maven { url = 'https://maven.minecraftforge.net' }
         maven { url = 'https://repo.spongepowered.org/maven'}
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
         mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
-        classpath "gradle.plugin.com.github.johnrengelman:shadow:7.1.2"
     }
 }
 
-apply plugin: 'com.github.johnrengelman.shadow'
+plugins {
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+}
+
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
-apply plugin: 'java'
 
 version = "${mod_version}"
 group = "${mod_package}"
@@ -32,7 +29,10 @@ repositories {
     maven {
         url = "https://www.cursemaven.com"
     }
-    maven { url 'https://jitpack.io' }
+    maven {
+        name 'm2-dv8tion'
+        url 'https://m2.dv8tion.net/releases'
+    }
     maven{
         url 'https://maven.enginehub.org/repo'
     }
@@ -87,23 +87,24 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     implementation fg.deobf('curse.maven:skinchangerapi-683061:4013524')
     implementation fg.deobf('curse.maven:obfuscate-289380:3740120')
-    implementation 'mysql:mysql-connector-java:8.0.30'
+    shadow('mysql:mysql-connector-java:8.0.25')
 }
 
 shadowJar {
+    classifier ''
+    configurations = [project.configurations.shadow]
 
-    dependencies {
-        include(dependency('mysql:mysql-connector-java:8.0.30'))
-    }
-
-    relocate 'com.mysql', 'me.miquiis.shadow.com.mysql'
-
-    classifier '' // Replace the default JAR
+    relocate('gnu.trove', 'me.miquiis.wardrobe.relocated.gnu.trove')
+    relocate('org.apache.commons.collections4', 'me.miquiis.wardrobe.relocated.org.apache.commons.collections4')
 }
+
+tasks.shadowJar.dependsOn('reobfJar')
 
 reobf {
-    shadowJar {} // Reobfuscate the shadowed JAR
+    shadowJar {}
 }
+
+shadowJar.finalizedBy('reobfShadowJar')
 
 mixin {
     add sourceSets.main, "wardrobe.mixin-refmap.json"

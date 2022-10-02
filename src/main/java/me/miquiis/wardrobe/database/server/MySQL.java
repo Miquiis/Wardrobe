@@ -1,6 +1,10 @@
 package me.miquiis.wardrobe.database.server;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
@@ -38,12 +42,7 @@ public class MySQL {
 	 */
 	public boolean connect() {
 		try {
-			Class.forName("me.miquiis.shadow.com.mysql.jdbc.Driver").newInstance();
-		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException ignored) {
-		}
-		try {
-			connection = DriverManager.getConnection(
-					"jdbc:mysql://" + host + ":" + port + "/" + database + "?autoReconnect=true", username, password);
+			connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database, username, password);
 			return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
