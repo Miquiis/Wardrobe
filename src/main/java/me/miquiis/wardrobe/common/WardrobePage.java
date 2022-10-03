@@ -16,15 +16,21 @@ public class WardrobePage {
     private PageSort pageSorted;
     private boolean isAscending;
     private List<SkinLocation> contents;
+    private WardrobeTab wardrobeTab;
     private int page;
 
-    public WardrobePage(String searchBar, PageSort pageSorted, boolean isAscending, List<SkinLocation> contents, int page)
+    public WardrobePage(String searchBar, PageSort pageSorted, boolean isAscending, List<SkinLocation> contents, WardrobeTab wardrobeTab, int page)
     {
         this.searchBar = searchBar;
         this.pageSorted = pageSorted;
         this.isAscending = isAscending;
         this.contents = contents;
+        this.wardrobeTab = wardrobeTab;
         this.page = page;
+    }
+
+    public WardrobeTab getWardrobeTab() {
+        return wardrobeTab;
     }
 
     public List<SkinLocation> getContents() {

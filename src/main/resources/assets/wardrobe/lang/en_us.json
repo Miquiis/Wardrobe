@@ -1,4 +1,6 @@
 {
+  "wardrobe.screen.hover.server_wardrobe_button": "Server Wardrobe",
+  "wardrobe.screen.hover.personal_wardrobe_button": "Personal Wardrobe",
   "wardrobe.screen.hover.sort_button.sort": "Sort By: ",
   "wardrobe.screen.hover.sort_button.order": "Order: ",
   "wardrobe.screen.hover.sort_button.ascend": "Ascending",

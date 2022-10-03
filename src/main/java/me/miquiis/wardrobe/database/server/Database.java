@@ -4,6 +4,8 @@ import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.common.WardrobePage;
 import me.miquiis.wardrobe.database.LocalCache;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -14,6 +16,7 @@ import java.util.function.Predicate;
 
 public class Database {
 
+    private static final Logger LOGGER = LogManager.getLogger();
     private MySQLConnection mySQL;
 
     public Database()
@@ -42,7 +45,7 @@ public class Database {
         {
             case SLIM:
             {
-                return "slim " + (isAscending ? "ASC" : "DESC");
+                return "slim " + (isAscending ? "DESC" : "ASC");
             }
             case ALPHABETIC:
             {
@@ -50,15 +53,15 @@ public class Database {
             }
             case LAST_UPDATED:
             {
-                return "uid " + (isAscending ? "ASC" : "DESC");
+                return "uid " + (isAscending ? "DESC" : "ASC");
             }
         }
-        return "uid " + (isAscending ? "ASC" : "DESC");
+        return "uid " + (isAscending ? "DESC" : "ASC");
     }
 
     public CompletableFuture<List<SkinLocation>> fetchPage(String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
     {
-        return mySQL.asyncResult("SELECT * FROM skins_dev WHERE uid>=" + startingAt + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + ";").handleAsync((resultSet, throwable) -> {
+        return mySQL.asyncResult("SELECT * FROM skins_dev WHERE uid>=" + startingAt + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + " LIMIT 16;").handleAsync((resultSet, throwable) -> {
             List<SkinLocation> skinLocations = new ArrayList<>();
             try {
                 while (resultSet.next())
@@ -66,15 +69,12 @@ public class Database {
                     skinLocations.add(new SkinLocation(resultSet.getString("name"), resultSet.getString("url"), resultSet.getBoolean("slim")));
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-                if (throwable != null) throwable.printStackTrace();
+                LOGGER.error("Error trying to get ResultSet.");
             }
 
             try {
                 resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            } catch (SQLException ignored) {}
 
             return skinLocations;
         });
@@ -102,7 +102,7 @@ public class Database {
                 return CompletableFuture.completedFuture(cached.get().getValue());
             }
         }
-        return mySQL.asyncResult("SELECT * FROM skins_dev WHERE name='" + skinId + "'").handleAsync((resultSet, throwable) -> {
+        return mySQL.asyncResult("SELECT * FROM skins_dev WHERE name='" + skinId + "' LIMIT 1").handleAsync((resultSet, throwable) -> {
             try
             {
                 if (resultSet.next())

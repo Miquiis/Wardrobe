@@ -41,7 +41,8 @@ public class MySQLConnection {
         try {
             connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database, username, password);
         } catch (Exception e) {
-            throw new Exception("There was an issue connecting to MySql: " + e.getMessage());
+            LOGGER.error("There has been an error:" + e.getMessage());
+            LOGGER.error("Failed to connect to the MySQL");
         }
     }
 
@@ -66,7 +67,7 @@ public class MySQLConnection {
                 connect();
                 return connection.createStatement().executeQuery(query);
             } catch (Exception e) {
-                e.printStackTrace();
+
             }
             return null;
         });
