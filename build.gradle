@@ -93,9 +93,6 @@ dependencies {
 shadowJar {
     classifier ''
     configurations = [project.configurations.shadow]
-
-    relocate('gnu.trove', 'me.miquiis.wardrobe.relocated.gnu.trove')
-    relocate('org.apache.commons.collections4', 'me.miquiis.wardrobe.relocated.org.apache.commons.collections4')
 }
 
 tasks.shadowJar.dependsOn('reobfJar')

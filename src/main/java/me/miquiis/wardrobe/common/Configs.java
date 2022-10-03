@@ -1,11 +1,15 @@
 package me.miquiis.wardrobe.common;
 
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.electronwill.nightconfig.core.io.WritingMode;
 import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.File;
+
 public class Configs {
 
-    public static class ServerConfig {
+    public static class DatabaseConfig {
 
         private static final String DEFAULT_HOST = "localhost";
         private static final String DEFAULT_PORT = "3306";
@@ -19,7 +23,7 @@ public class Configs {
         public final ForgeConfigSpec.ConfigValue<String> username;
         public final ForgeConfigSpec.ConfigValue<String> password;
 
-        public ServerConfig(ForgeConfigSpec.Builder builder)
+        public DatabaseConfig(ForgeConfigSpec.Builder builder)
         {
             builder.push("server");
             this.host = builder
@@ -41,13 +45,19 @@ public class Configs {
         }
     }
 
-    public static final ServerConfig SERVER_CONFIG;
-    public static final ForgeConfigSpec SERVER_CONFIG_SPEC;
+    public static final DatabaseConfig DATABASE_CONFIG;
+    public static final ForgeConfigSpec DATABASE_CONFIG_SPEC;
 
     static {
-        Pair<ServerConfig, ForgeConfigSpec> serverSpecPair = new ForgeConfigSpec.Builder().configure(ServerConfig::new);
-        SERVER_CONFIG = serverSpecPair.getLeft();
-        SERVER_CONFIG_SPEC = serverSpecPair.getRight();
+        Pair<DatabaseConfig, ForgeConfigSpec> serverSpecPair = new ForgeConfigSpec.Builder().configure(DatabaseConfig::new);
+        DATABASE_CONFIG = serverSpecPair.getLeft();
+        DATABASE_CONFIG_SPEC = serverSpecPair.getRight();
+    }
+
+    public static void loadConfig(ForgeConfigSpec config, String path) {
+        final CommentedFileConfig file = CommentedFileConfig.builder(new File(path)).sync().autosave().writingMode(WritingMode.REPLACE).build();
+        file.load();
+        config.setConfig(file);
     }
 
 }

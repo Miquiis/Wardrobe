@@ -3,7 +3,6 @@ package me.miquiis.wardrobe.database.server;
 import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.common.WardrobePage;
-import me.miquiis.wardrobe.common.Configs;
 import me.miquiis.wardrobe.database.LocalCache;
 
 import java.sql.SQLException;
@@ -15,11 +14,26 @@ import java.util.function.Predicate;
 
 public class Database {
 
-    private MySQL mySQL;
+    private MySQLConnection mySQL;
 
     public Database()
     {
-        this.mySQL = new MySQL(Configs.SERVER_CONFIG.host.get(), Configs.SERVER_CONFIG.port.get(), Configs.SERVER_CONFIG.database.get(), Configs.SERVER_CONFIG.username.get(), Configs.SERVER_CONFIG.password.get());
+        try {
+            this.mySQL = new MySQLConnection();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void firstBoot()
+    {
+        try {
+            mySQL.connect();
+            mySQL.query("SELECT * FROM skins_dev LIMIT 1");
+            mySQL.getConnection().close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private String getSortKey(WardrobePage.PageSort pageSort, boolean isAscending)
@@ -54,9 +68,14 @@ public class Database {
             } catch (Exception e) {
                 e.printStackTrace();
                 if (throwable != null) throwable.printStackTrace();
-            } finally {
-                close();
             }
+
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
             return skinLocations;
         });
     }
@@ -69,7 +88,7 @@ public class Database {
                                 "ON DUPLICATE KEY UPDATE url=VALUES(url), slim=VALUES(slim);",
                         skinId, skinURL, isSlim
                 )
-        ).thenRunAsync(this::close);
+        );
     }
 
     public CompletableFuture<SkinLocation> fetchSkinLocation(String skinId)
@@ -95,9 +114,14 @@ public class Database {
             } catch (SQLException e) {
                 if (throwable != null) throwable.printStackTrace();
                 e.printStackTrace();
-            } finally {
-                close();
             }
+
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
             SkinLocation skinLocation = new SkinLocation(skinId, "");
             Wardrobe.getInstance().getServerSkinLocationCache().cache(skinLocation, cachedPredicate);
             return skinLocation;
@@ -107,13 +131,5 @@ public class Database {
     public CompletableFuture<String> fetchSkinURL(String skinId)
     {
         return fetchSkinLocation(skinId).thenApplyAsync(SkinLocation::getSkinURL);
-    }
-
-    private void close()
-    {
-        if (mySQL != null)
-        {
-            mySQL.disconnect();
-        }
     }
 }

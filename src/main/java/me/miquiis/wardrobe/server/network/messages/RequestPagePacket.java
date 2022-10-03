@@ -2,7 +2,6 @@ package me.miquiis.wardrobe.server.network.messages;
 
 import me.miquiis.wardrobe.common.WardrobePage;
 import me.miquiis.wardrobe.database.server.Database;
-import me.miquiis.wardrobe.database.server.MySQL;
 import me.miquiis.wardrobe.server.network.ModNetwork;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
