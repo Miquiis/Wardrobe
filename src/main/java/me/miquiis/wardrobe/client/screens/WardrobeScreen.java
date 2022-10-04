@@ -11,8 +11,10 @@ import me.miquiis.wardrobe.common.WardrobePage;
 import me.miquiis.wardrobe.common.WardrobeTab;
 import me.miquiis.wardrobe.database.LocalCache;
 import me.miquiis.wardrobe.server.network.ModNetwork;
+import me.miquiis.wardrobe.server.network.messages.ClearSkinPacket;
 import me.miquiis.wardrobe.server.network.messages.LoadSkinPacket;
 import me.miquiis.wardrobe.server.network.messages.RequestPagePacket;
+import me.miquiis.wardrobe.server.network.messages.UploadSkinPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
@@ -36,6 +38,9 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -159,15 +164,16 @@ public class WardrobeScreen extends Screen {
         }));
 
         this.wearSkinButton = addButton(new Button(guiLeft + 50 - 40, guiTop + 50 + 10, 80, 20, new StringTextComponent("Wear Skin"), p_onPress_1_ -> {
-
+            ModNetwork.CHANNEL.sendToServer(new LoadSkinPacket(selectedSkin));
         }));
 
         this.clearSkinButton = addButton(new Button(guiLeft + 50 - 10 + 50, guiTop - 75, 20, 20, new StringTextComponent(""), p_onPress_1_ -> {
-
+            ModNetwork.CHANNEL.sendToServer(new ClearSkinPacket());
         }));
 
         this.modifySkinButton = addButton(new Button(guiLeft + 50 - 10 - 50, guiTop - 75, 20, 20, new StringTextComponent(""), p_onPress_1_ -> {
-            PopUpScreen popUpScreen = new PopUpScreen(this, new SkinSettingsScreen(selectedSkin));
+            System.out.println(selectedSkin.isSlim());
+            PopUpScreen popUpScreen = new PopUpScreen(this, new SkinSettingsScreen(selectedSkin, currentTab));
             minecraft.displayGuiScreen(popUpScreen);
         }));
 
@@ -215,6 +221,7 @@ public class WardrobeScreen extends Screen {
                 isLoading = true;
             }
         }
+        selectedSkin = null;
         resetSkinButtons();
     }
 
@@ -364,7 +371,7 @@ public class WardrobeScreen extends Screen {
         });
 
         if (isLoading) {
-            drawFakePlayerOnScreen(width / 2 - (wardrobeWidth - 50), (height / 2 + 50), 50, mouseX, mouseY, LOADING_SKIN, true, 1f - ((loadingTick % 50) / 50f));
+            drawFakePlayerOnScreen(width / 2 - (wardrobeWidth - 50), (height / 2 + 50), 50, mouseX, mouseY, LOADING_SKIN, false, 1f - ((loadingTick % 50) / 50f));
         } else {
             for (int i = 0; i < 4; i++)
             {
@@ -378,7 +385,6 @@ public class WardrobeScreen extends Screen {
                             SkinLocation skinLocation = pageContent.getContents().get(currentId);
                             addButton(new WardrobeSkinButton(width / 2 - wardrobeWidth + 33 * i - 12, height / 2 - 52 + 50 * j - 50, 25, 50, new StringTextComponent(skinLocation.getSkinId()), currentId, p_onPress_1_ -> {
                                 SkinLocation skin = pageContent.getContents().get(((WardrobeSkinButton)p_onPress_1_).buttonId);
-//                                ModNetwork.CHANNEL.sendToServer(new LoadSkinPacket(skin));
                                 selectedSkin = skin;
                             }));
                             drawFakePlayerOnScreen(width / 2 - wardrobeWidth + 33 * i, height / 2 - 52 + 50 * j, 25, mouseX, mouseY, skinLocation.getSkinLocation(), skinLocation.isSlim());
@@ -407,7 +413,7 @@ public class WardrobeScreen extends Screen {
         float f = (float)Math.atan((double)(mouseX / 40.0F));
         float f1 = (float)Math.atan((double)(mouseY / 40.0F));
         RenderSystem.pushMatrix();
-        RenderSystem.translatef((float)posX, (float)posY, 10.0F);
+        RenderSystem.translatef((float)posX, (float)posY, 50.0F);
         RenderSystem.scalef(1.0F, 1.0F, -1.0F);
         MatrixStack matrixstack = new MatrixStack();
         matrixstack.translate(0.0D, 0.0D, 0.0D);

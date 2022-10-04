@@ -1,9 +1,11 @@
 package me.miquiis.wardrobe.server.network;
 
 import me.miquiis.wardrobe.Wardrobe;
+import me.miquiis.wardrobe.server.network.messages.ClearSkinPacket;
 import me.miquiis.wardrobe.server.network.messages.LoadSkinPacket;
 import me.miquiis.wardrobe.server.network.messages.RequestPagePacket;
 import me.miquiis.wardrobe.server.network.messages.SendPagePacket;
+import me.miquiis.wardrobe.server.network.messages.UploadSkinPacket;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
@@ -21,6 +23,8 @@ public class ModNetwork {
         CHANNEL.registerMessage(0, LoadSkinPacket.class, LoadSkinPacket::encodePacket, LoadSkinPacket::decodePacket, LoadSkinPacket::handlePacket);
         CHANNEL.registerMessage(1, RequestPagePacket.class, RequestPagePacket::encodePacket, RequestPagePacket::decodePacket, RequestPagePacket::handlePacket);
         CHANNEL.registerMessage(2, SendPagePacket.class, SendPagePacket::encodePacket, SendPagePacket::decodePacket, SendPagePacket::handlePacket);
+        CHANNEL.registerMessage(3, ClearSkinPacket.class, ClearSkinPacket::encodePacket, ClearSkinPacket::decodePacket, ClearSkinPacket::handlePacket);
+        CHANNEL.registerMessage(4, UploadSkinPacket.class, UploadSkinPacket::encodePacket, UploadSkinPacket::decodePacket, UploadSkinPacket::handlePacket);
     }
 
 }

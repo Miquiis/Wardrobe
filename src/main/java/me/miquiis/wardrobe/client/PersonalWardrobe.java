@@ -1,5 +1,7 @@
 package me.miquiis.wardrobe.client;
 
+import me.miquiis.skinchangerapi.SkinChangerAPI;
+import me.miquiis.skinchangerapi.client.SkinChangerAPIClient;
 import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.client.managers.FileManager;
@@ -10,6 +12,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,8 +41,15 @@ public class PersonalWardrobe {
         init(true);
     }
 
-    public static void modifySkin(SkinLocation skinLocation)
+    public static void modifySkin(SkinLocation previousSkinLocation, SkinLocation newSkinLocation)
     {
+        skinsFileManager.deleteObject(previousSkinLocation.getSkinId(), false);
+        skinsFileManager.saveObject(newSkinLocation.getSkinId(), new SkinLocation(newSkinLocation.getSkinId(), newSkinLocation.getSkinURL(), null, newSkinLocation.isSlim()));
+    }
+
+    public static void deleteSkin(SkinLocation skinLocation)
+    {
+        skinsFileManager.deleteObject(skinLocation.getSkinId(), false);
     }
 
     private static void init(boolean forceInit)
@@ -50,7 +60,7 @@ public class PersonalWardrobe {
         List<SkinLocation> skinLocations = skinsFileManager.loadObjects(SkinLocation.class);
         personalWardrobe.addAll(skinLocations.stream().map(skinLocation -> {
             File skinFile = new File(texturesFolder, skinLocation.getSkinURL());
-            return new SkinLocation(skinLocation.getSkinId(), skinFile.getAbsolutePath());
+            return new SkinLocation(skinLocation.getSkinId(), skinFile.getAbsolutePath(), skinLocation.isSlim());
         }).collect(Collectors.toList()));
         autoGenerateSkins();
     }

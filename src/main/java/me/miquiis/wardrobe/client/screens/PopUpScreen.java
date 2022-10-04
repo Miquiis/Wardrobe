@@ -9,6 +9,11 @@ import net.minecraft.util.text.StringTextComponent;
 
 public class PopUpScreen extends Screen {
 
+    public interface IPopUpScreen {
+        PopUpScreen getPopUpScreen();
+        void setPopUpScreen(PopUpScreen popUpScreen);
+    }
+
     private Screen backgroundScreen;
     private Screen frontScreen;
 
@@ -16,6 +21,11 @@ public class PopUpScreen extends Screen {
         super(new StringTextComponent("PopUp"));
         this.backgroundScreen = backgroundScreen;
         this.frontScreen = frontScreen;
+        if (frontScreen instanceof IPopUpScreen)
+        {
+            IPopUpScreen iPopUpScreen = (IPopUpScreen) frontScreen;
+            iPopUpScreen.setPopUpScreen(this);
+        }
     }
 
     @Override
@@ -94,22 +104,36 @@ public class PopUpScreen extends Screen {
         frontScreen.tick();
     }
 
+    public void finish() {
+        if (backgroundScreen instanceof WardrobeScreen)
+        {
+            WardrobeScreen wardrobeScreen = (WardrobeScreen) backgroundScreen;
+            wardrobeScreen.refreshPage(true);
+        }
+        minecraft.displayGuiScreen(backgroundScreen);
+    }
+
     @Override
     public void onClose() {
-        super.onClose();
+        System.out.println("Here");
+        //super.onClose();
+        //frontScreen.onClose();
     }
 
     @Override
     public void closeScreen() {
-        frontScreen.onClose();
+        System.out.println("Here 2");
         minecraft.displayGuiScreen(backgroundScreen);
+//        System.out.println("Close");
+//        frontScreen.onClose();
+//        minecraft.displayGuiScreen(backgroundScreen);
     }
 
     @Override
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         backgroundScreen.render(matrixStack, mouseX, mouseY, partialTicks);
         matrixStack.push();
-        matrixStack.translate(0, 0, 50);
+        matrixStack.translate(0, 0, 100);
         frontScreen.render(matrixStack, mouseX, mouseY, partialTicks);
         matrixStack.pop();
     }
