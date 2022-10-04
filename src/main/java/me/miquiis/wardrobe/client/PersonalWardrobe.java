@@ -38,6 +38,10 @@ public class PersonalWardrobe {
         init(true);
     }
 
+    public static void modifySkin(SkinLocation skinLocation)
+    {
+    }
+
     private static void init(boolean forceInit)
     {
         if (forceInit) skinsFileManager = new FileManager("personal-wardrobe/skins");

@@ -20,9 +20,9 @@ public class PopUpScreen extends Screen {
 
     @Override
     public void resize(Minecraft minecraft, int width, int height) {
-        super.resize(minecraft, width, height);
         backgroundScreen.resize(minecraft, width, height);
         frontScreen.resize(minecraft, width, height);
+        super.resize(minecraft, width, height);
     }
 
     @Override
@@ -108,7 +108,10 @@ public class PopUpScreen extends Screen {
     @Override
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         backgroundScreen.render(matrixStack, mouseX, mouseY, partialTicks);
+        matrixStack.push();
+        matrixStack.translate(0, 0, 50);
         frontScreen.render(matrixStack, mouseX, mouseY, partialTicks);
+        matrixStack.pop();
     }
 
     @Override

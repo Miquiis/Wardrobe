@@ -6,6 +6,7 @@ import me.miquiis.wardrobe.Wardrobe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.gui.widget.button.CheckboxButton;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
@@ -25,6 +26,9 @@ public class SkinSettingsScreen extends Screen {
     private TextFieldWidget skinUrlField;
     private CheckboxButton isSlimBox;
 
+    private Button saveButton;
+    private Button deleteButton;
+
     public SkinSettingsScreen(SkinLocation skinLocation) {
         super(new StringTextComponent("Skin Settings"));
         this.skinLocation = skinLocation;
@@ -34,6 +38,17 @@ public class SkinSettingsScreen extends Screen {
     public void tick() {
         super.tick();
         skinNameField.tick();
+    }
+
+    @Override
+    public void resize(Minecraft minecraft, int width, int height) {
+        String prevTextName = skinNameField.getText();
+        String prevURL = skinUrlField.getText();
+        boolean prevSlim = isSlimBox.isChecked();
+        super.resize(minecraft, width, height);
+        skinNameField.setText(prevTextName);
+        skinUrlField.setText(prevURL);
+        if (prevSlim == !isSlimBox.isChecked()) isSlimBox.onPress();
     }
 
     @Override
@@ -54,9 +69,10 @@ public class SkinSettingsScreen extends Screen {
         this.skinNameField.setCanLoseFocus(true);
         this.skinNameField.x -= this.skinNameField.getAdjustedWidth() / 2 + 4;
         this.skinNameField.y -= this.skinNameField.getHeight() / 2 + 80;
+        this.skinNameField.setText(skinLocation.getSkinId());
 
         this.skinUrlField = new TextFieldWidget(this.font, this.guiLeft, this.guiTop, 80, 9, new TranslationTextComponent("itemGroup.search"));
-        this.skinUrlField.setMaxStringLength(50);
+        this.skinUrlField.setMaxStringLength(Integer.MAX_VALUE);
         this.skinUrlField.setEnableBackgroundDrawing(true);
         this.skinUrlField.setVisible(true);
         this.skinUrlField.setTextColor(16777215);
@@ -65,12 +81,22 @@ public class SkinSettingsScreen extends Screen {
         this.skinUrlField.setCanLoseFocus(true);
         this.skinUrlField.x -= this.skinUrlField.getAdjustedWidth() / 2 + 4;
         this.skinUrlField.y -= this.skinUrlField.getHeight() / 2 + 40;
+        this.skinUrlField.setText(skinLocation.getSkinURL());
 
-        this.isSlimBox = new CheckboxButton(this.guiLeft, this.guiTop, 20, 20, new StringTextComponent(""), false);
+        this.isSlimBox = new CheckboxButton(this.guiLeft, this.guiTop, 20, 20, new StringTextComponent(""), skinLocation.isSlim());
         this.isSlimBox.visible = true;
         this.isSlimBox.active = true;
         this.isSlimBox.x -= this.isSlimBox.getWidth() / 2;
         this.isSlimBox.y -= this.isSlimBox.getHeight() / 2 + 16;
+
+        this.saveButton = addButton(new Button(this.guiLeft - 176 / 2, guiTop + 222 / 2, 60, 20, new StringTextComponent("Save"), p_onPress_1_ -> {
+
+        }));
+
+        this.deleteButton = addButton(new Button(this.guiLeft + 176 / 2, guiTop + 222 / 2, 60, 20, new StringTextComponent("\u00A7cDelete"), p_onPress_1_ -> {
+
+        }));
+        this.deleteButton.x -= this.deleteButton.getWidth();
 
         this.children.add(skinNameField);
         this.children.add(skinUrlField);
@@ -80,6 +106,7 @@ public class SkinSettingsScreen extends Screen {
     @Override
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(matrixStack);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
 
         minecraft.textureManager.bindTexture(WARDROBE_SETTINGS);
         blit(matrixStack, width / 2 - 176 /2, height / 2 - 222 / 2, 176, 222, 0, 0, 176, 222, 256, 256);
@@ -92,6 +119,9 @@ public class SkinSettingsScreen extends Screen {
         {
             renderTooltip(matrixStack, new StringTextComponent("Has Small Arms?"), mouseX, mouseY);
         }
+
+        font.drawStringWithShadow(matrixStack, "Skin Name", skinNameField.x, skinNameField.y - 12, 0xFFFFFF);
+        font.drawStringWithShadow(matrixStack, "Skin URL", skinUrlField.x, skinUrlField.y - 12, 0xFFFFFF);
 
         WardrobeScreen.drawFakePlayerOnScreen(width / 2, height / 2 + 87, 40, mouseX, mouseY, skinLocation.getSkinLocation(), skinLocation.isSlim());
     }
