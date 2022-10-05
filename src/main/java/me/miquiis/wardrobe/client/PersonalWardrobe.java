@@ -81,9 +81,6 @@ public class PersonalWardrobe {
         personalWardrobe.addAll(skinLocations.stream().map(skinLocation -> {
             File skinFile = new File(texturesFolder, skinLocation.getSkinURL());
             try {
-                System.out.println("Hash of : " + skinLocation.getSkinId());
-                System.out.println(ImageUtils.byteToHex(ImageUtils.createImageHash(skinFile)));
-
                 Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(Files.readAllBytes(skinFile.toPath()), ImageUtils.createImageHash(skinFile)));
             } catch (IOException e) {
                 e.printStackTrace();

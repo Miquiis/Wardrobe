@@ -1,6 +1,7 @@
 package me.miquiis.wardrobe.client;
 
 import me.miquiis.skinchangerapi.SkinChangerAPI;
+import me.miquiis.skinchangerapi.client.SkinChangerAPIClient;
 import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.client.screens.WardrobeScreen;
@@ -18,6 +19,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.network.PacketDistributor;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import java.awt.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
@@ -60,10 +62,9 @@ public class PacketHandler {
             byte[] skinHash = ImageUtils.createImageHash(msg.getSkinBytes());
             if (!Wardrobe.getInstance().getClientTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), skinHash)))
             {
-                System.out.println("Caching Skin");
                 Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(msg.getSkinBytes(), skinHash));
-            } else {
-                System.out.println("Trying to download an existing skin");
+                SkinLocation skinLocation = new SkinLocation(ImageUtils.byteToHex(skinHash), "hex:" + ImageUtils.byteToHex(skinHash), false);
+                Minecraft.getInstance().textureManager.deleteTexture(skinLocation.getSkinLocation());
             }
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);

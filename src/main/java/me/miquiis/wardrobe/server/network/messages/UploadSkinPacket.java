@@ -32,10 +32,7 @@ public class UploadSkinPacket {
         byte[] skinHash = msg.skinHash;
         if (!Wardrobe.getInstance().getServerTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), skinHash)))
         {
-            System.out.println("Caching Skin");
             Wardrobe.getInstance().getServerTextureCache().cache(new TextureCache(msg.skinBytes, skinHash));
-        } else {
-            System.out.println("Trying to upload an existing skin");
         }
     }
 

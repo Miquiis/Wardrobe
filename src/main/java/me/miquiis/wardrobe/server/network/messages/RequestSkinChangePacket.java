@@ -36,13 +36,9 @@ public class RequestSkinChangePacket {
    public static void handlePacket(final RequestSkinChangePacket msg, Supplier<NetworkEvent.Context> ctx) {
       if (!Wardrobe.getInstance().getServerTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), msg.skinHash)))
       {
-         // Request Skin Upload
-         System.out.println("Requesting Skin from Client");
          ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> ctx.get().getSender()), new RequestSkinUploadPacket(msg.skinHash));
       }
-
       String skinHashHex = ImageUtils.byteToHex(msg.skinHash);
-      System.out.println("Hash: " + skinHashHex);
       SkinLocation skinLocation = new SkinLocation(skinHashHex, "hex:" + skinHashHex, false);
       SkinChangerAPI.setPlayerSkin(ctx.get().getSender(), skinLocation);
    }

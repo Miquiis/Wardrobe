@@ -75,7 +75,6 @@ public class LoadingCachedTexture extends SimpleTexture {
    }
 
    public void loadTexture(IResourceManager manager) throws IOException {
-      System.out.println("Loading Cached Texture");
       Minecraft.getInstance().execute(() -> {
          if (!this.textureUploaded) {
             try {
@@ -89,11 +88,7 @@ public class LoadingCachedTexture extends SimpleTexture {
 
       });
 
-      System.out.println("Loading Cached Texture 2");
-
       if (this.future == null) {
-         System.out.println("Loading Cached Texture 3");
-
          NativeImage nativeimage;
          if (this.cacheFile != null && this.cacheFile.isFile()) {
             LOGGER.debug("Loading http texture from local cache ({})", (Object)this.cacheFile);
@@ -103,50 +98,24 @@ public class LoadingCachedTexture extends SimpleTexture {
             nativeimage = null;
          }
 
-         System.out.println("Loading Cached Texture 4");
-
          if (nativeimage != null) {
             this.setImage(nativeimage);
          } else {
-            System.out.println("Loading Cached Texture 5");
             try {
-               System.out.println("Loading Cached Texture 6");
-               System.out.println("Loading Cached Texture 6.5");
-               System.out.println(Wardrobe.getInstance().getClientTextureCache());
-               System.out.println(skinHex);
                Predicate<LocalCache<TextureCache>.Cached> cachedPredicate = cached -> {
-                  System.out.println(ImageUtils.byteToHex(cached.getValue().getTextureHash()));
-                  System.out.println(skinHex);
-                  System.out.println(skinHex.toUpperCase());
                   return ImageUtils.byteToHex(cached.getValue().getTextureHash()).equals(skinHex);
                };
                if (!Wardrobe.getInstance().getClientTextureCache().hasCache(cachedPredicate))
                {
-                  System.out.println("Not on cache");
                   try {
                      ModNetwork.CHANNEL.sendToServer(new RequestSkinDownloadPacket(ImageUtils.hexToBytes(skinHex)));
-//                     int secondsElapsed = 0;
-//                     while (!Wardrobe.getInstance().getClientTextureCache().hasCache(cached -> ImageUtils.byteToHex(cached.getValue().getTextureHash()).equals(skinHex)) || secondsElapsed < 30)
-//                     {
-//                        System.out.println("Sleeping");
-//                        Thread.sleep(1000);
-//                        secondsElapsed++;
-//                     }
-//                     if (!Wardrobe.getInstance().getClientTextureCache().hasCache(cached -> ImageUtils.byteToHex(cached.getValue().getTextureHash()).equals(skinHex)))
-//                     {
-//                        System.out.println("Couldn't download texture of hex " + skinHex);
-//                        return;
-//                     }
-//                     System.out.println("Successfully download texture " + skinHex);
                   } catch (Exception e)
                   {
                      e.printStackTrace();
                   }
                }
-               System.out.println("Loading Cached Texture 7");
                Wardrobe.getInstance().getClientTextureCache().getCache(cachedPredicate).ifPresent(cached -> {
                   try {
-                     System.out.println("Loading Skin from Cache");
                      File imageFile = File.createTempFile("temp_skin_" + skinHex, null);
                      Files.write(imageFile.toPath(), cached.getValue().getTextureBytes());
                      InputStream inputstream;
@@ -156,15 +125,11 @@ public class LoadingCachedTexture extends SimpleTexture {
                      } else {
                         inputstream = new FileInputStream(imageFile);
                      }
-
-                     System.out.println("Loading Skin from Cache 2");
                      Minecraft.getInstance().execute(() -> {
                         NativeImage nativeimage1 = this.loadTexture(inputstream);
                         if (nativeimage1 != null) {
-                           System.out.println("Loading Skin from Cache 3");
                            this.setImage(nativeimage1);
                         }
-
                      });
                   } catch (Exception exception) {
                      LOGGER.error("Couldn't load local texture " + skinHex);

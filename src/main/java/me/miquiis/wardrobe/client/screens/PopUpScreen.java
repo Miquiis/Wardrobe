@@ -115,18 +115,11 @@ public class PopUpScreen extends Screen {
 
     @Override
     public void onClose() {
-        System.out.println("Here");
-        //super.onClose();
-        //frontScreen.onClose();
     }
 
     @Override
     public void closeScreen() {
-        System.out.println("Here 2");
         minecraft.displayGuiScreen(backgroundScreen);
-//        System.out.println("Close");
-//        frontScreen.onClose();
-//        minecraft.displayGuiScreen(backgroundScreen);
     }
 
     @Override

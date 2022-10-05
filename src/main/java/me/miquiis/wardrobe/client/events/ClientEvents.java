@@ -29,14 +29,11 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onCustomLoadSkin(LoadSkinTextureEvent.Pre event)
     {
-        System.out.println("Here");
         if (event.getSkinLocation().getSkinURL().startsWith("hex:"))
         {
             event.setCanceled(true);
-            System.out.println("Here 2");
             Minecraft minecraft = Minecraft.getInstance();
             try (LoadingCachedTexture downloadingTexture = new LoadingCachedTexture(null, event.getSkinLocation().getSkinURL().replace("hex:", ""), DefaultPlayerSkin.getDefaultSkinLegacy(), true, null)) {
-                System.out.println("Here 3");
                 minecraft.getTextureManager().loadTexture(event.getSkinLocation().getSkinLocation(), downloadingTexture);
             }
         }

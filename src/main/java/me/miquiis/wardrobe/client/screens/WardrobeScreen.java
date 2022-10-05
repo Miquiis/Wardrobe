@@ -171,12 +171,13 @@ public class WardrobeScreen extends Screen {
                 try {
                     File skinFile = new File(selectedSkin.getSkinURL());
                     if (!skinFile.exists()) return;
-                    System.out.println("Hash of : " + selectedSkin.getSkinId());
-                    System.out.println(ImageUtils.byteToHex(ImageUtils.createImageHash(skinFile)));
                     ModNetwork.CHANNEL.sendToServer(new RequestSkinChangePacket(ImageUtils.createImageHash(skinFile)));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            } else if (currentTab == WardrobeTab.SERVER_WARDROBE)
+            {
+                ModNetwork.CHANNEL.sendToServer(new LoadSkinPacket(selectedSkin));
             }
         }));
 
@@ -185,7 +186,6 @@ public class WardrobeScreen extends Screen {
         }));
 
         this.modifySkinButton = addButton(new Button(guiLeft + 50 - 10 - 50, guiTop - 75, 20, 20, new StringTextComponent(""), p_onPress_1_ -> {
-            System.out.println(selectedSkin.isSlim());
             PopUpScreen popUpScreen = new PopUpScreen(this, new SkinSettingsScreen(selectedSkin, currentTab));
             minecraft.displayGuiScreen(popUpScreen);
         }));

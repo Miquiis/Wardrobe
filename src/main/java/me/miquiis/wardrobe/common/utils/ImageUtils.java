@@ -63,12 +63,9 @@ public class ImageUtils {
 
                 }
                 percentage = (count * 100) / sizeA;
-            } else {
-                System.out.println("Both the images are not of same size");
             }
-
         } catch (Exception e) {
-            System.out.println("Failed to compare image files ...");
+            e.printStackTrace();
         }
         return percentage;
     }
