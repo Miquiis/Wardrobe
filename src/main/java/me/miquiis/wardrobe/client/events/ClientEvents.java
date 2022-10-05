@@ -1,8 +1,13 @@
 package me.miquiis.wardrobe.client.events;
 
+import me.miquiis.skinchangerapi.client.DownloadingTexture;
+import me.miquiis.skinchangerapi.client.LoadSkinTextureEvent;
 import me.miquiis.wardrobe.Wardrobe;
+import me.miquiis.wardrobe.client.LoadingCachedTexture;
 import me.miquiis.wardrobe.client.screens.WardrobeScreen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.inventory.ChestScreen;
+import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiOpenEvent;
@@ -18,6 +23,22 @@ public class ClientEvents {
         if (event.getGui() instanceof ChestScreen)
         {
             event.setGui(new WardrobeScreen(new StringTextComponent("Wardrobe")));
+        }
+    }
+
+    @SubscribeEvent
+    public static void onCustomLoadSkin(LoadSkinTextureEvent.Pre event)
+    {
+        System.out.println("Here");
+        if (event.getSkinLocation().getSkinURL().startsWith("hex:"))
+        {
+            event.setCanceled(true);
+            System.out.println("Here 2");
+            Minecraft minecraft = Minecraft.getInstance();
+            try (LoadingCachedTexture downloadingTexture = new LoadingCachedTexture(null, event.getSkinLocation().getSkinURL().replace("hex:", ""), DefaultPlayerSkin.getDefaultSkinLegacy(), true, null)) {
+                System.out.println("Here 3");
+                minecraft.getTextureManager().loadTexture(event.getSkinLocation().getSkinLocation(), downloadingTexture);
+            }
         }
     }
 

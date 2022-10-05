@@ -1,38 +1,41 @@
 package me.miquiis.wardrobe.server.network.messages;
 
+import me.miquiis.wardrobe.Wardrobe;
+import me.miquiis.wardrobe.common.utils.ImageUtils;
+import me.miquiis.wardrobe.common.cache.TextureCache;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class UploadSkinPacket {
 
     private byte[] skinBytes;
+    private byte[] skinHash;
 
-    public UploadSkinPacket(byte[] skinBytes) {
+    public UploadSkinPacket(byte[] skinBytes, byte[] skinHash) {
         this.skinBytes = skinBytes;
+        this.skinHash = skinHash;
     }
 
     public static void encodePacket(UploadSkinPacket packet, PacketBuffer buf) {
-        buf.writeByteArray(packet.skinBytes);
+        buf.writeByteArray(packet.skinBytes).writeByteArray(packet.skinHash);
     }
 
     public static UploadSkinPacket decodePacket(PacketBuffer buf) {
-        return new UploadSkinPacket(buf.readByteArray());
+        return new UploadSkinPacket(buf.readByteArray(), buf.readByteArray());
     }
 
     public static void handlePacket(final UploadSkinPacket msg, Supplier<NetworkEvent.Context> ctx) {
-        File skinsFolder = new File(ServerLifecycleHooks.getCurrentServer().getDataDirectory(), "skins");
-        if (!skinsFolder.exists()) skinsFolder.mkdir();
-        File skinFile = new File(skinsFolder, "skin_output.png");
-        try {
-            Files.write(skinFile.toPath(), msg.skinBytes);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        byte[] skinHash = msg.skinHash;
+        if (!Wardrobe.getInstance().getServerTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), skinHash)))
+        {
+            System.out.println("Caching Skin");
+            Wardrobe.getInstance().getServerTextureCache().cache(new TextureCache(msg.skinBytes, skinHash));
+        } else {
+            System.out.println("Trying to upload an existing skin");
         }
     }
 

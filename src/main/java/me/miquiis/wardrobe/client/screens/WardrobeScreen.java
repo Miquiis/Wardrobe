@@ -9,11 +9,13 @@ import me.miquiis.wardrobe.client.PersonalWardrobe;
 import me.miquiis.wardrobe.client.renderers.CustomPlayerRenderer;
 import me.miquiis.wardrobe.common.WardrobePage;
 import me.miquiis.wardrobe.common.WardrobeTab;
+import me.miquiis.wardrobe.common.utils.ImageUtils;
 import me.miquiis.wardrobe.database.LocalCache;
 import me.miquiis.wardrobe.server.network.ModNetwork;
 import me.miquiis.wardrobe.server.network.messages.ClearSkinPacket;
 import me.miquiis.wardrobe.server.network.messages.LoadSkinPacket;
 import me.miquiis.wardrobe.server.network.messages.RequestPagePacket;
+import me.miquiis.wardrobe.server.network.messages.RequestSkinChangePacket;
 import me.miquiis.wardrobe.server.network.messages.UploadSkinPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
@@ -164,7 +166,18 @@ public class WardrobeScreen extends Screen {
         }));
 
         this.wearSkinButton = addButton(new Button(guiLeft + 50 - 40, guiTop + 50 + 10, 80, 20, new StringTextComponent("Wear Skin"), p_onPress_1_ -> {
-            ModNetwork.CHANNEL.sendToServer(new LoadSkinPacket(selectedSkin));
+            if (currentTab == WardrobeTab.PERSONAL_WARDROBE)
+            {
+                try {
+                    File skinFile = new File(selectedSkin.getSkinURL());
+                    if (!skinFile.exists()) return;
+                    System.out.println("Hash of : " + selectedSkin.getSkinId());
+                    System.out.println(ImageUtils.byteToHex(ImageUtils.createImageHash(skinFile)));
+                    ModNetwork.CHANNEL.sendToServer(new RequestSkinChangePacket(ImageUtils.createImageHash(skinFile)));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }));
 
         this.clearSkinButton = addButton(new Button(guiLeft + 50 - 10 + 50, guiTop - 75, 20, 20, new StringTextComponent(""), p_onPress_1_ -> {

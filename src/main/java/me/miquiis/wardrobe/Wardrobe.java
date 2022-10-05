@@ -6,6 +6,7 @@ import me.miquiis.wardrobe.common.Configs;
 import me.miquiis.wardrobe.common.ref.ModInformation;
 import me.miquiis.wardrobe.database.LocalCache;
 import me.miquiis.wardrobe.database.server.Database;
+import me.miquiis.wardrobe.common.cache.TextureCache;
 import me.miquiis.wardrobe.server.network.ModNetwork;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -26,7 +27,10 @@ public class Wardrobe
     public static final String MOD_ID = ModInformation.MOD_ID;
 
     private LocalCache<SkinLocation> serverSkinLocationCache;
+    private LocalCache<TextureCache> serverTextureCache;
+
     private LocalCache<WardrobePage> clientWardrobePageCache;
+    private LocalCache<TextureCache> clientTextureCache;
 
     public Wardrobe() {
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -40,6 +44,7 @@ public class Wardrobe
     private void clientSetup(final FMLClientSetupEvent event)
     {
         clientWardrobePageCache = new LocalCache<>();
+        clientTextureCache = new LocalCache<>();
     }
 
     private void setup(final FMLCommonSetupEvent event)
@@ -59,10 +64,19 @@ public class Wardrobe
             e.printStackTrace();
         }
         serverSkinLocationCache = new LocalCache<>();
+        serverTextureCache = new LocalCache<>();
     }
 
     public LocalCache<SkinLocation> getServerSkinLocationCache() {
         return serverSkinLocationCache;
+    }
+
+    public LocalCache<TextureCache> getServerTextureCache() {
+        return serverTextureCache;
+    }
+
+    public LocalCache<TextureCache> getClientTextureCache() {
+        return clientTextureCache;
     }
 
     public LocalCache<WardrobePage> getClientWardrobePageCache() {
