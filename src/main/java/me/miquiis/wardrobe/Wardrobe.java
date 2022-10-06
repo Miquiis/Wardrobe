@@ -1,6 +1,7 @@
 package me.miquiis.wardrobe;
 
 import me.miquiis.skinchangerapi.common.SkinLocation;
+import me.miquiis.wardrobe.client.ClientKeybinds;
 import me.miquiis.wardrobe.common.WardrobePage;
 import me.miquiis.wardrobe.common.Configs;
 import me.miquiis.wardrobe.common.ref.ModInformation;
@@ -43,6 +44,7 @@ public class Wardrobe
 
     private void clientSetup(final FMLClientSetupEvent event)
     {
+        ClientKeybinds.registerBindings();
         clientWardrobePageCache = new LocalCache<>();
         clientTextureCache = new LocalCache<>();
     }

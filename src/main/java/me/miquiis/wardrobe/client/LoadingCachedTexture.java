@@ -36,6 +36,7 @@ public class LoadingCachedTexture extends SimpleTexture {
    @Nullable
    private final File cacheFile;
    private final String skinHex;
+   private final boolean isSlim;
    private final boolean legacySkin;
    @Nullable
    private final Runnable processTask;
@@ -43,10 +44,11 @@ public class LoadingCachedTexture extends SimpleTexture {
    private CompletableFuture<?> future;
    private boolean textureUploaded;
 
-   public LoadingCachedTexture(@Nullable File cacheFileIn, String skinHex, ResourceLocation textureResourceLocation, boolean legacySkinIn, @Nullable Runnable processTaskIn) {
+   public LoadingCachedTexture(@Nullable File cacheFileIn, String skinHex, boolean isSlim, ResourceLocation textureResourceLocation, boolean legacySkinIn, @Nullable Runnable processTaskIn) {
       super(textureResourceLocation);
       this.cacheFile = cacheFileIn;
       this.skinHex = skinHex;
+      this.isSlim = isSlim;
       this.legacySkin = legacySkinIn;
       this.processTask = processTaskIn;
    }
@@ -103,12 +105,11 @@ public class LoadingCachedTexture extends SimpleTexture {
          } else {
             try {
                Predicate<LocalCache<TextureCache>.Cached> cachedPredicate = cached -> {
-                  return ImageUtils.byteToHex(cached.getValue().getTextureHash()).equals(skinHex);
+                  return ImageUtils.byteToHex(cached.getValue().getTextureHash()).equals(skinHex) && isSlim == cached.getValue().isTextureIsSlim();
                };
                if (!Wardrobe.getInstance().getClientTextureCache().hasCache(cachedPredicate))
                {
                   try {
-                     System.out.println("Request Skin Download");
                      ModNetwork.CHANNEL.sendToServer(new RequestSkinDownloadPacket(ImageUtils.hexToBytes(skinHex)));
                      return;
                   } catch (Exception e)

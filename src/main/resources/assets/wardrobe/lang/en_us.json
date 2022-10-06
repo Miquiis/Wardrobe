@@ -1,4 +1,5 @@
 {
+  "wardrobe.screen.hover.database_wardrobe_button": "Database Wardrobe",
   "wardrobe.screen.hover.server_wardrobe_button": "Server Wardrobe",
   "wardrobe.screen.hover.personal_wardrobe_button": "Personal Wardrobe",
   "wardrobe.screen.hover.sort_button.sort": "Sort By: ",
@@ -8,5 +9,7 @@
   "wardrobe.screen.hover.sort_button.alphabetic": "A-Z",
   "wardrobe.screen.hover.sort_button.last_updated": "Last Updated",
   "wardrobe.screen.hover.sort_button.slim": "Small Arms",
-  "wardrobe.screen.hover.refresh_button": "Refresh Page"
+  "wardrobe.screen.hover.refresh_button": "Refresh Page",
+  "key.wardrobe.group": "Wardrobe",
+  "key.wardrobe.open_wardrobe.desc": "Open Wardrobe"
 }

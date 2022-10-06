@@ -1,6 +1,5 @@
 package me.miquiis.wardrobe.client;
 
-import me.miquiis.skinchangerapi.SkinChangerAPI;
 import me.miquiis.skinchangerapi.client.SkinChangerAPIClient;
 import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
@@ -10,16 +9,9 @@ import me.miquiis.wardrobe.common.WardrobeTab;
 import me.miquiis.wardrobe.common.cache.TextureCache;
 import me.miquiis.wardrobe.common.utils.ImageUtils;
 import me.miquiis.wardrobe.server.network.ModNetwork;
-import me.miquiis.wardrobe.server.network.messages.DownloadSkinPacket;
-import me.miquiis.wardrobe.server.network.messages.RequestSkinUploadPacket;
-import me.miquiis.wardrobe.server.network.messages.SendPagePacket;
-import me.miquiis.wardrobe.server.network.messages.SendSkinChangePacket;
-import me.miquiis.wardrobe.server.network.messages.UploadSkinPacket;
+import me.miquiis.wardrobe.server.network.messages.*;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.network.PacketDistributor;
-import org.apache.commons.codec.digest.DigestUtils;
 
-import java.awt.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
@@ -27,7 +19,7 @@ public class PacketHandler {
 
     public static void handleSendPagePacket(SendPagePacket msg) {
         Wardrobe.getInstance().getClientWardrobePageCache().cache(new WardrobePage(msg.getSearchBar(),
-                msg.getPageSort(), msg.isAscending(), msg.getPageContents(), WardrobeTab.SERVER_WARDROBE, msg.getPage()
+                msg.getPageSort(), msg.isAscending(), msg.getPageContents(), msg.getRequestPagePacket() == RequestPagePacket.RequestPagePacketType.DATABASE ? WardrobeTab.DATABASE_WARDROBE : WardrobeTab.SERVER_WARDROBE, msg.getPage()
         ), cached -> cached.getValue().getSearchBar().equals(msg.getSearchBar()) && cached.getValue().isAscending() == msg.isAscending() && cached.getValue().getPageSorted() == msg.getPageSort() && cached.getValue().getPage() == msg.getPage());
 
         if (Minecraft.getInstance().currentScreen instanceof WardrobeScreen)
@@ -37,12 +29,10 @@ public class PacketHandler {
     }
 
     public static void handleRequestSkinUploadPacket(RequestSkinUploadPacket msg) {
-        System.out.println("Handling Skin Upload Packet");
         byte[] textureBytes = PersonalWardrobe.getSkinTextureByHash(msg.getSkinHash());
         if (textureBytes != null)
         {
-            System.out.println("Uploading Skin to Server");
-            ModNetwork.CHANNEL.sendToServer(new UploadSkinPacket(textureBytes, msg.getSkinHash()));
+            ModNetwork.CHANNEL.sendToServer(new UploadSkinPacket(textureBytes, msg.getSkinHash(), PersonalWardrobe.getSkinIsSlimByHash(msg.getSkinHash()), msg.getSkinUploadPacketType()));
         }
     }
 
@@ -52,7 +42,6 @@ public class PacketHandler {
             // Change Skin
         } else {
             // Request Skin Download
-            System.out.println("Requesting Skin from Server");
         }
     }
 
@@ -60,14 +49,12 @@ public class PacketHandler {
         try
         {
             byte[] skinHash = ImageUtils.createImageHash(msg.getSkinBytes());
-            System.out.println("Hello Im Here");
-            if (!Wardrobe.getInstance().getClientTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), skinHash)))
+            if (!Wardrobe.getInstance().getClientTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), skinHash) && cached.getValue().isTextureIsSlim() == msg.isSkinIsSlim()))
             {
-                System.out.println("Hello Im Here 2");
-                Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(msg.getSkinBytes(), skinHash));
-                SkinLocation skinLocation = new SkinLocation(ImageUtils.byteToHex(skinHash), "hex:" + ImageUtils.byteToHex(skinHash), false);
-                System.out.println(Minecraft.getInstance().textureManager.getTexture(skinLocation.getSkinLocation()));
+                Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(msg.getSkinBytes(), skinHash, msg.isSkinIsSlim()));
+                SkinLocation skinLocation = new SkinLocation(ImageUtils.byteToHex(skinHash), "hex:" + ImageUtils.byteToHex(skinHash), msg.isSkinIsSlim());
                 Minecraft.getInstance().textureManager.deleteTexture(skinLocation.getSkinLocation());
+                SkinChangerAPIClient.loadSkin(skinLocation);
             }
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);

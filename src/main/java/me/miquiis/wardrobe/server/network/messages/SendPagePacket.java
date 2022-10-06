@@ -20,13 +20,15 @@ public class SendPagePacket {
    private WardrobePage.PageSort pageSort;
    private boolean isAscending;
    private int page;
+   private RequestPagePacket.RequestPagePacketType requestPagePacket;
 
-   public SendPagePacket(List<SkinLocation> pageContents, String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int page) {
+   public SendPagePacket(List<SkinLocation> pageContents, String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int page, RequestPagePacket.RequestPagePacketType requestPagePacket) {
       this.pageContents = pageContents;
       this.searchBar = searchBar;
       this.pageSort = pageSort;
       this.isAscending = isAscending;
       this.page = page;
+      this.requestPagePacket = requestPagePacket;
    }
 
    public static void encodePacket(SendPagePacket packet, PacketBuffer buf) {
@@ -37,6 +39,7 @@ public class SendPagePacket {
       });
       compoundNBT.put("PageContents", pageContents);
       buf.writeCompoundTag(compoundNBT).writeString(packet.searchBar).writeEnumValue(packet.pageSort).writeBoolean(packet.isAscending).writeInt(packet.page);
+      buf.writeEnumValue(packet.requestPagePacket);
    }
 
    public static SendPagePacket decodePacket(PacketBuffer buf) {
@@ -46,7 +49,7 @@ public class SendPagePacket {
       listNBT.forEach(inbt -> {
          skinLocations.add(SkinLocation.SKIN_LOCATION.read(inbt));
       });
-      return new SendPagePacket(skinLocations, buf.readString(), buf.readEnumValue(WardrobePage.PageSort.class), buf.readBoolean(), buf.readInt());
+      return new SendPagePacket(skinLocations, buf.readString(), buf.readEnumValue(WardrobePage.PageSort.class), buf.readBoolean(), buf.readInt(), buf.readEnumValue(RequestPagePacket.RequestPagePacketType.class));
    }
 
    public static void handlePacket(final SendPagePacket msg, Supplier<NetworkEvent.Context> ctx) {
@@ -71,5 +74,9 @@ public class SendPagePacket {
 
    public boolean isAscending() {
       return isAscending;
+   }
+
+   public RequestPagePacket.RequestPagePacketType getRequestPagePacket() {
+      return requestPagePacket;
    }
 }

@@ -1,30 +1,27 @@
 package me.miquiis.wardrobe.server.network.messages;
 
-import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.client.PacketHandler;
-import me.miquiis.wardrobe.common.cache.TextureCache;
-import me.miquiis.wardrobe.common.utils.ImageUtils;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class DownloadSkinPacket {
 
-    private byte[] skinBytes;
+    private final byte[] skinBytes;
+    private final boolean skinIsSlim;
 
-    public DownloadSkinPacket(byte[] skinBytes) {
+    public DownloadSkinPacket(byte[] skinBytes, boolean skinIsSlim) {
         this.skinBytes = skinBytes;
+        this.skinIsSlim = skinIsSlim;
     }
 
     public static void encodePacket(DownloadSkinPacket packet, PacketBuffer buf) {
-        buf.writeByteArray(packet.skinBytes);
+        buf.writeByteArray(packet.skinBytes).writeBoolean(packet.skinIsSlim);
     }
 
     public static DownloadSkinPacket decodePacket(PacketBuffer buf) {
-        return new DownloadSkinPacket(buf.readByteArray());
+        return new DownloadSkinPacket(buf.readByteArray(), buf.readBoolean());
     }
 
     public static void handlePacket(final DownloadSkinPacket msg, Supplier<NetworkEvent.Context> ctx) {
@@ -33,5 +30,9 @@ public class DownloadSkinPacket {
 
     public byte[] getSkinBytes() {
         return skinBytes;
+    }
+
+    public boolean isSkinIsSlim() {
+        return skinIsSlim;
     }
 }

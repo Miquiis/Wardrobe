@@ -5,7 +5,7 @@ import me.miquiis.wardrobe.server.network.messages.ClearSkinPacket;
 import me.miquiis.wardrobe.server.network.messages.DownloadSkinPacket;
 import me.miquiis.wardrobe.server.network.messages.LoadSkinPacket;
 import me.miquiis.wardrobe.server.network.messages.RequestPagePacket;
-import me.miquiis.wardrobe.server.network.messages.RequestSkinChangePacket;
+import me.miquiis.wardrobe.server.network.messages.RequestSkinPacket;
 import me.miquiis.wardrobe.server.network.messages.RequestSkinDownloadPacket;
 import me.miquiis.wardrobe.server.network.messages.RequestSkinUploadPacket;
 import me.miquiis.wardrobe.server.network.messages.SendPagePacket;
@@ -30,7 +30,7 @@ public class ModNetwork {
         CHANNEL.registerMessage(2, SendPagePacket.class, SendPagePacket::encodePacket, SendPagePacket::decodePacket, SendPagePacket::handlePacket);
         CHANNEL.registerMessage(3, ClearSkinPacket.class, ClearSkinPacket::encodePacket, ClearSkinPacket::decodePacket, ClearSkinPacket::handlePacket);
         CHANNEL.registerMessage(4, UploadSkinPacket.class, UploadSkinPacket::encodePacket, UploadSkinPacket::decodePacket, UploadSkinPacket::handlePacket);
-        CHANNEL.registerMessage(5, RequestSkinChangePacket.class, RequestSkinChangePacket::encodePacket, RequestSkinChangePacket::decodePacket, RequestSkinChangePacket::handlePacket);
+        CHANNEL.registerMessage(5, RequestSkinPacket.class, RequestSkinPacket::encodePacket, RequestSkinPacket::decodePacket, RequestSkinPacket::handlePacket);
         CHANNEL.registerMessage(6, RequestSkinUploadPacket.class, RequestSkinUploadPacket::encodePacket, RequestSkinUploadPacket::decodePacket, RequestSkinUploadPacket::handlePacket);
         CHANNEL.registerMessage(7, DownloadSkinPacket.class, DownloadSkinPacket::encodePacket, DownloadSkinPacket::decodePacket, DownloadSkinPacket::handlePacket);
         CHANNEL.registerMessage(8, SendSkinChangePacket.class, SendSkinChangePacket::encodePacket, SendSkinChangePacket::decodePacket, SendSkinChangePacket::handlePacket);

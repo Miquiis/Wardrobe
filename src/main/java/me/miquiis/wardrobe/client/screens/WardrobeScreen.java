@@ -2,6 +2,7 @@ package me.miquiis.wardrobe.client.screens;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import me.miquiis.skinchangerapi.SkinChangerAPI;
 import me.miquiis.skinchangerapi.client.SkinChangerAPIClient;
 import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
@@ -15,13 +16,11 @@ import me.miquiis.wardrobe.server.network.ModNetwork;
 import me.miquiis.wardrobe.server.network.messages.ClearSkinPacket;
 import me.miquiis.wardrobe.server.network.messages.LoadSkinPacket;
 import me.miquiis.wardrobe.server.network.messages.RequestPagePacket;
-import me.miquiis.wardrobe.server.network.messages.RequestSkinChangePacket;
-import me.miquiis.wardrobe.server.network.messages.UploadSkinPacket;
+import me.miquiis.wardrobe.server.network.messages.RequestSkinPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
@@ -30,19 +29,16 @@ import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.crash.ReportedException;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.*;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -84,6 +80,7 @@ public class WardrobeScreen extends Screen {
     private WardrobePage pageContent;
     private WardrobePage.PageSort pageSort;
     private boolean isAscending;
+    private boolean hasNextPage;
 
     private String lastSearchField = "";
     private int lastTypedTick;
@@ -92,11 +89,12 @@ public class WardrobeScreen extends Screen {
     private TextFieldWidget searchField;
     private Button refreshButton;
     private Button filterButton;
+    private Button databaseWardrobeButton;
     private Button serverWardrobeButton;
     private Button personalWardrobeButton;
     private Button wearSkinButton;
+    private Button shareSkinButton;
     private Button clearSkinButton;
-    private Button sendToServerButton;
     private Button modifySkinButton;
 
     private boolean canRefresh = true;
@@ -106,8 +104,11 @@ public class WardrobeScreen extends Screen {
     private final int wardrobeWidth = 150;
     private final int wardrobeHeight = 230;
 
+    private boolean isFirstLoad;
+
     public WardrobeScreen(ITextComponent titleIn) {
         super(titleIn);
+        isFirstLoad = true;
     }
 
     @Override
@@ -138,6 +139,7 @@ public class WardrobeScreen extends Screen {
         currentPage = 1;
         pageSort = WardrobePage.PageSort.ALPHABETIC;
         isAscending = true;
+        hasNextPage = false;
 
         this.refreshButton = addButton(new Button(this.guiLeft - 48, this.guiTop - 115 - 21, 20, 20, new StringTextComponent(""), p_onPress_1_ -> {
             refreshPage(true);
@@ -153,15 +155,27 @@ public class WardrobeScreen extends Screen {
             refreshPage(false);
         }));
 
-        this.serverWardrobeButton = addButton(new DontRenderButton(this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 10, 28, 28, new StringTextComponent("serverWardrobe"), p_onPress_1_ -> {
-            currentTab = WardrobeTab.SERVER_WARDROBE;
+        this.databaseWardrobeButton = addButton(new DontRenderButton(this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 10, 28, 28, new StringTextComponent("database_wardrobe"), p_onPress_1_ -> {
             selectedSkin = null;
+            currentTab = WardrobeTab.DATABASE_WARDROBE;
+            currentPage = 1;
+            hasNextPage = false;
             refreshPage(false);
         }));
 
-        this.personalWardrobeButton = addButton(new DontRenderButton(this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 42, 28, 28, new StringTextComponent("serverWardrobe"), p_onPress_1_ -> {
-            currentTab = WardrobeTab.PERSONAL_WARDROBE;
+        this.serverWardrobeButton = addButton(new DontRenderButton(this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 42, 28, 28, new StringTextComponent("server_wardrobe"), p_onPress_1_ -> {
             selectedSkin = null;
+            currentTab = WardrobeTab.SERVER_WARDROBE;
+            currentPage = 1;
+            hasNextPage = false;
+            refreshPage(false);
+        }));
+
+        this.personalWardrobeButton = addButton(new DontRenderButton(this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 74, 28, 28, new StringTextComponent("personal_wardrobe"), p_onPress_1_ -> {
+            selectedSkin = null;
+            currentTab = WardrobeTab.PERSONAL_WARDROBE;
+            currentPage = 1;
+            hasNextPage = false;
             refreshPage(false);
         }));
 
@@ -173,11 +187,22 @@ public class WardrobeScreen extends Screen {
                 {
                     ModNetwork.CHANNEL.sendToServer(new LoadSkinPacket(selectedSkin));
                 } else {
-                    ModNetwork.CHANNEL.sendToServer(new RequestSkinChangePacket(ImageUtils.createImageHash(skinFile)));
+                    ModNetwork.CHANNEL.sendToServer(new RequestSkinPacket(ImageUtils.createImageHash(skinFile), selectedSkin.isSlim(), RequestSkinPacket.RequestSkinPacketType.SEND_TO_CLIENT));
                 }
+            } else if (currentTab == WardrobeTab.DATABASE_WARDROBE)
+            {
+                ModNetwork.CHANNEL.sendToServer(new LoadSkinPacket(selectedSkin));
             } else if (currentTab == WardrobeTab.SERVER_WARDROBE)
             {
                 ModNetwork.CHANNEL.sendToServer(new LoadSkinPacket(selectedSkin));
+            }
+        }));
+
+        this.shareSkinButton = addButton(new Button(guiLeft + 50 - 50, guiTop + 50 + 32, 100, 20, new StringTextComponent("Send to Server"), p_onPress_1_ -> {
+            File skinFile = new File(selectedSkin.getSkinURL());
+            if (skinFile.exists())
+            {
+                ModNetwork.CHANNEL.sendToServer(new RequestSkinPacket(ImageUtils.createImageHash(skinFile), selectedSkin.isSlim(), RequestSkinPacket.RequestSkinPacketType.SAVE_TO_SERVER));
             }
         }));
 
@@ -205,18 +230,27 @@ public class WardrobeScreen extends Screen {
         this.clearSkinButton.visible = false;
         this.modifySkinButton.visible = false;
 
-        refreshPage(false);
+        if (isFirstLoad)
+        {
+            isFirstLoad = false;
+            refreshPage(true);
+        }
+        else refreshPage(false);
     }
 
     public void refreshPage(boolean forceRefresh)
     {
         if (!canRefresh) return;
+        if (forceRefresh) Wardrobe.getInstance().getClientWardrobePageCache().clearCache();
+        pageContent = null;
         Optional<LocalCache<WardrobePage>.Cached> cachedPage = Wardrobe.getInstance().getClientWardrobePageCache().getCache(cached -> cached.getValue().getSearchBar().equals(searchField.getText()) && cached.getValue().isAscending() == isAscending && cached.getValue().getPageSorted() == pageSort && cached.getValue().getPage() == currentPage && cached.getValue().getWardrobeTab() == currentTab);
+        Optional<LocalCache<WardrobePage>.Cached> cachedNextPage = Wardrobe.getInstance().getClientWardrobePageCache().getCache(cached -> cached.getValue().getSearchBar().equals(searchField.getText()) && cached.getValue().isAscending() == isAscending && cached.getValue().getPageSorted() == pageSort && cached.getValue().getPage() == currentPage + 1 && cached.getValue().getWardrobeTab() == currentTab);
         if (!forceRefresh && cachedPage.isPresent())
         {
             // Load
             pageContent = cachedPage.get().getValue();
             pageContent.getContents().forEach(SkinChangerAPIClient::loadSkin);
+            if (!hasNextPage) hasNextPage = cachedNextPage.isPresent();
             isLoading = false;
         } else {
             // Request
@@ -224,13 +258,20 @@ public class WardrobeScreen extends Screen {
             {
                 PersonalWardrobe.refreshWardrobe();
                 Wardrobe.getInstance().getClientWardrobePageCache().cache(new WardrobePage(searchField.getText(),
-                        pageSort, isAscending, PersonalWardrobe.getPersonalWardrobe(), WardrobeTab.PERSONAL_WARDROBE, currentPage
+                        pageSort, isAscending, PersonalWardrobe.getPersonalWardrobeFrom((currentPage - 1) * 16, searchField.getText(), pageSort, isAscending), WardrobeTab.PERSONAL_WARDROBE, currentPage
                 ), cached -> cached.getValue().getSearchBar().equals(searchField.getText()) && cached.getValue().isAscending() == isAscending && cached.getValue().getPageSorted() == pageSort && cached.getValue().getPage() == currentPage && currentTab == cached.getValue().getWardrobeTab());
+                hasNextPage = PersonalWardrobe.hasNextPage((currentPage) * 16, searchField.getText(), pageSort, isAscending);
                 isLoading = true;
                 refreshPage(false);
-            } else if (currentTab == WardrobeTab.SERVER_WARDROBE)
+            } else if (currentTab == WardrobeTab.DATABASE_WARDROBE)
             {
-                ModNetwork.CHANNEL.sendToServer(new RequestPagePacket(searchField.getText(), pageSort, isAscending, currentPage, 1));
+                ModNetwork.CHANNEL.sendToServer(new RequestPagePacket(searchField.getText(), pageSort, isAscending, currentPage, 1, RequestPagePacket.RequestPagePacketType.DATABASE));
+                hasNextPage = false;
+                isLoading = true;
+            }  else if (currentTab == WardrobeTab.SERVER_WARDROBE)
+            {
+                ModNetwork.CHANNEL.sendToServer(new RequestPagePacket(searchField.getText(), pageSort, isAscending, currentPage, 1, RequestPagePacket.RequestPagePacketType.SERVER));
+                hasNextPage = false;
                 isLoading = true;
             }
         }
@@ -238,9 +279,42 @@ public class WardrobeScreen extends Screen {
         resetSkinButtons();
     }
 
+    @Override
+    public void onClose() {
+        super.onClose();
+        Minecraft.getInstance().player.playSound(SoundEvents.BLOCK_CHEST_CLOSE, 0.2f, 1f);
+    }
+
+    private void changePages(int nextPage)
+    {
+        if (currentPage > 1 && nextPage < currentPage)
+        {
+            currentPage--;
+            refreshPage(false);
+        } else {
+            if (nextPage > currentPage && hasNextPage)
+            {
+                currentPage++;
+                hasNextPage = false;
+                refreshPage(true);
+            }
+        }
+    }
+
     private void resetSkinButtons() {
         this.buttons.removeIf(widget -> widget instanceof WardrobeSkinButton);
         this.getEventListeners().removeIf(widget -> widget instanceof WardrobeSkinButton);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+        if (delta >= 0f)
+        {
+            changePages(currentPage - 1);
+        } else {
+            changePages(currentPage + 1);
+        }
+        return super.mouseScrolled(mouseX, mouseY, delta);
     }
 
     @Override
@@ -265,8 +339,11 @@ public class WardrobeScreen extends Screen {
         this.searchField.tick();
 
         wearSkinButton.visible = selectedSkin != null;
-        clearSkinButton.visible = selectedSkin != null;
+        shareSkinButton.visible = selectedSkin != null && currentTab == WardrobeTab.PERSONAL_WARDROBE;
+        clearSkinButton.visible = !SkinChangerAPI.getPlayerSkin(Minecraft.getInstance().player).getSkinId().isEmpty();
         modifySkinButton.visible = selectedSkin != null;
+
+        modifySkinButton.active = currentTab == WardrobeTab.PERSONAL_WARDROBE;
 
         if (!lastSearchField.equals(searchField.getText()))
         {
@@ -315,22 +392,33 @@ public class WardrobeScreen extends Screen {
 
         minecraft.textureManager.bindTexture(WARDROBE_ICONS);
 
-        if (currentTab == WardrobeTab.SERVER_WARDROBE)
+        if (currentTab == WardrobeTab.DATABASE_WARDROBE)
         {
+            blit(matrixStack, this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 74, 28, 28, 87, 168, 28, 28, 256, 256);
             blit(matrixStack, this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 42, 28, 28, 87, 168, 28, 28, 256, 256);
+        } else if (currentTab == WardrobeTab.SERVER_WARDROBE)
+        {
+            blit(matrixStack, this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 10, 28, 28, 87, 168, 28, 28, 256, 256);
+            blit(matrixStack, this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 74, 28, 28, 87, 168, 28, 28, 256, 256);
         } else if (currentTab == WardrobeTab.PERSONAL_WARDROBE)
         {
             blit(matrixStack, this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 10, 28, 28, 87, 168, 28, 28, 256, 256);
+            blit(matrixStack, this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 42, 28, 28, 87, 168, 28, 28, 256, 256);
         }
 
         if (selectedSkin != null)
         {
-            blit(matrixStack, guiLeft + 50 - 10 + 50 + 5, guiTop - 75 + 5, 10, 10, 26, 170, 12, 12, 256, 256);
             blit(matrixStack, guiLeft + 50 - 10 - 50 + 4, guiTop - 75 + 4, 12, 12, 39, 170, 12, 12, 256, 256);
         }
 
-        itemRenderer.renderItemIntoGUI(new ItemStack(Items.ENDER_CHEST), this.guiLeft - wardrobeWidth - 45, this.guiTop - wardrobeHeight / 2 + 16);
-        itemRenderer.renderItemIntoGUI(new ItemStack(Items.CHEST), this.guiLeft - wardrobeWidth - 45, this.guiTop - wardrobeHeight / 2 + 48);
+        if (clearSkinButton.visible)
+        {
+            blit(matrixStack, guiLeft + 50 - 10 + 50 + 5, guiTop - 75 + 5, 10, 10, 26, 170, 12, 12, 256, 256);
+        }
+
+        itemRenderer.renderItemIntoGUI(new ItemStack(Items.END_PORTAL_FRAME), this.guiLeft - wardrobeWidth - 45, this.guiTop - wardrobeHeight / 2 + 16);
+        itemRenderer.renderItemIntoGUI(new ItemStack(Items.ENDER_CHEST), this.guiLeft - wardrobeWidth - 45, this.guiTop - wardrobeHeight / 2 + 48);
+        itemRenderer.renderItemIntoGUI(new ItemStack(Items.CHEST), this.guiLeft - wardrobeWidth - 45, this.guiTop - wardrobeHeight / 2 + 80);
 
         minecraft.textureManager.bindTexture(WARDROBE_ICONS);
 
@@ -338,15 +426,13 @@ public class WardrobeScreen extends Screen {
         blit(matrixStack, this.guiLeft + 4 - 48, this.guiTop + 4 - 115 - 21, 12, 12, 1, 170, 12, 12, 256, 256);
         blit(matrixStack, this.guiLeft + 4 - 72, this.guiTop + 4 - 115 - 21, 12, 12, 13, 170, 12, 12, 256, 256);
 
-        if (currentTab == WardrobeTab.SERVER_WARDROBE)
-        {
+        if (currentTab == WardrobeTab.DATABASE_WARDROBE) {
             blit(matrixStack, this.guiLeft - wardrobeWidth - 53, this.guiTop - wardrobeHeight / 2 + 10, 32, 28, 116, 168, 32, 28, 256, 256);
-        } else if (currentTab == WardrobeTab.PERSONAL_WARDROBE)
-        {
+        } else if (currentTab == WardrobeTab.SERVER_WARDROBE) {
             blit(matrixStack, this.guiLeft - wardrobeWidth - 53, this.guiTop - wardrobeHeight / 2 + 42, 32, 28, 116, 168, 32, 28, 256, 256);
+        } else if (currentTab == WardrobeTab.PERSONAL_WARDROBE) {
+            blit(matrixStack, this.guiLeft - wardrobeWidth - 53, this.guiTop - wardrobeHeight / 2 + 74, 32, 28, 116, 168, 32, 28, 256, 256);
         }
-
-//        blit(matrixStack, this.guiLeft - wardrobeWidth - 53, this.guiTop, 32, 28, 116, 168, 32, 28, 256, 256);
 
         searchField.render(matrixStack, mouseX, mouseY, partialTicks);
         searchField.x = this.guiLeft - wardrobeWidth - 100 + searchField.getWidth() - 12;
@@ -363,6 +449,11 @@ public class WardrobeScreen extends Screen {
         if (refreshButton.isHovered() && refreshButton.active)
         {
             renderTooltip(matrixStack, new TranslationTextComponent("wardrobe.screen.hover.refresh_button"), mouseX, mouseY);
+        }
+
+        if (isHovered(databaseWardrobeButton, mouseX, mouseY))
+        {
+            renderTooltip(matrixStack, new TranslationTextComponent("wardrobe.screen.hover.database_wardrobe_button"), mouseX, mouseY);
         }
 
         if (isHovered(serverWardrobeButton, mouseX, mouseY))
