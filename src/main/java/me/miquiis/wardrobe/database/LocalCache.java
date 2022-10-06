@@ -54,6 +54,16 @@ public class LocalCache<T> {
         cache.add(new Cached(cacheValue));
     }
 
+    public void clearCache()
+    {
+        this.cache.clear();
+    }
+
+    public void decache(Predicate<Cached> decachePredicate)
+    {
+        cache.removeIf(decachePredicate);
+    }
+
     public Optional<Cached> getCache(Predicate<Cached> predicate)
     {
         return cache.stream().filter(predicate).findFirst();

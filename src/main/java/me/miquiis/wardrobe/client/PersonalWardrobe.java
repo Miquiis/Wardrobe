@@ -7,11 +7,19 @@ import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.client.managers.FileManager;
 import me.miquiis.wardrobe.common.cache.TextureCache;
 import me.miquiis.wardrobe.common.utils.ImageUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.LivingRenderer;
+import net.minecraft.client.renderer.entity.layers.CreeperChargeLayer;
+import net.minecraft.client.renderer.entity.layers.LayerRenderer;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import sun.net.util.URLUtil;
 
 import java.awt.*;
 import java.io.File;
@@ -48,13 +56,31 @@ public class PersonalWardrobe {
 
     public static void modifySkin(SkinLocation previousSkinLocation, SkinLocation newSkinLocation)
     {
-        skinsFileManager.deleteObject(previousSkinLocation.getSkinId(), false);
-        skinsFileManager.saveObject(newSkinLocation.getSkinId(), new SkinLocation(newSkinLocation.getSkinId(), newSkinLocation.getSkinURL(), null, newSkinLocation.isSlim()));
+        deleteSkin(previousSkinLocation);
+        addSkin(newSkinLocation);
+    }
+
+    public static void addSkin(SkinLocation skinLocation)
+    {
+        skinsFileManager.saveObject(skinLocation.getSkinId(), new SkinLocation(skinLocation.getSkinId(), skinLocation.getSkinURL(), null, skinLocation.isSlim()));
+        File skinFile = new File(skinLocation.getSkinURL());
+        if (!skinFile.exists()) skinFile = new File(texturesFolder, skinLocation.getSkinURL());
+        if (skinFile.exists())
+        {
+            try {
+                Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(Files.readAllBytes(skinFile.toPath()), ImageUtils.createImageHash(skinFile)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static void deleteSkin(SkinLocation skinLocation)
     {
         skinsFileManager.deleteObject(skinLocation.getSkinId(), false);
+        Minecraft.getInstance().textureManager.deleteTexture(skinLocation.getSkinLocation());
+        File skinFile = new File(skinLocation.getSkinURL());
+        Wardrobe.getInstance().getClientTextureCache().decache(cached -> Arrays.equals(cached.getValue().getTextureHash(), ImageUtils.createImageHash(skinFile)));
     }
 
     public static byte[] getSkinTextureByHash(byte[] skinHash)
@@ -76,16 +102,20 @@ public class PersonalWardrobe {
     {
         if (forceInit) skinsFileManager = new FileManager("personal-wardrobe/skins");
         personalWardrobe.clear();
-        skinsFileManager.saveObject("default", new SkinLocation("default"));
+        Wardrobe.getInstance().getClientTextureCache().clearCache();
+        skinsFileManager.saveObject("default", new SkinLocation("default", "", null, false));
         List<SkinLocation> skinLocations = skinsFileManager.loadObjects(SkinLocation.class);
         personalWardrobe.addAll(skinLocations.stream().map(skinLocation -> {
             File skinFile = new File(texturesFolder, skinLocation.getSkinURL());
-            try {
-                Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(Files.readAllBytes(skinFile.toPath()), ImageUtils.createImageHash(skinFile)));
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (skinFile.exists() && !FilenameUtils.getExtension(skinFile.getName()).isEmpty())
+            {
+                try {
+                    Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(Files.readAllBytes(skinFile.toPath()), ImageUtils.createImageHash(skinFile)));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            return new SkinLocation(skinLocation.getSkinId(), skinFile.getAbsolutePath(), skinLocation.isSlim());
+            return new SkinLocation(skinLocation.getSkinId(), skinFile.exists() ? skinFile.getAbsolutePath() : skinLocation.getSkinURL(), skinLocation.isSlim());
         }).collect(Collectors.toList()));
         autoGenerateSkins();
     }

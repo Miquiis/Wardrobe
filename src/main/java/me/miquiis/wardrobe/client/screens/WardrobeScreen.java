@@ -168,12 +168,12 @@ public class WardrobeScreen extends Screen {
         this.wearSkinButton = addButton(new Button(guiLeft + 50 - 40, guiTop + 50 + 10, 80, 20, new StringTextComponent("Wear Skin"), p_onPress_1_ -> {
             if (currentTab == WardrobeTab.PERSONAL_WARDROBE)
             {
-                try {
-                    File skinFile = new File(selectedSkin.getSkinURL());
-                    if (!skinFile.exists()) return;
+                File skinFile = new File(selectedSkin.getSkinURL());
+                if (!skinFile.exists())
+                {
+                    ModNetwork.CHANNEL.sendToServer(new LoadSkinPacket(selectedSkin));
+                } else {
                     ModNetwork.CHANNEL.sendToServer(new RequestSkinChangePacket(ImageUtils.createImageHash(skinFile)));
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             } else if (currentTab == WardrobeTab.SERVER_WARDROBE)
             {

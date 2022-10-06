@@ -17,9 +17,15 @@ import java.util.Arrays;
 
 public class ImageUtils {
 
-    public static byte[] createImageHash(File file) throws IOException {
-        HashCode md5 = Files.asByteSource(file).hash(Hashing.md5());
-        return md5.asBytes();
+    public static byte[] createImageHash(File file) {
+        try
+        {
+            HashCode md5 = Files.asByteSource(file).hash(Hashing.md5());
+            return md5.asBytes();
+        } catch (Exception e)
+        {
+            return null;
+        }
     }
 
     public static String byteToHex(byte[] hexBytes)

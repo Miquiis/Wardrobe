@@ -1,5 +1,7 @@
 package me.miquiis.wardrobe.server.network.messages;
 
+import me.miquiis.skinchangerapi.SkinChangerAPI;
+import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.common.utils.ImageUtils;
 import me.miquiis.wardrobe.common.cache.TextureCache;
@@ -34,6 +36,9 @@ public class UploadSkinPacket {
         {
             Wardrobe.getInstance().getServerTextureCache().cache(new TextureCache(msg.skinBytes, skinHash));
         }
+        String skinHashHex = ImageUtils.byteToHex(msg.skinHash);
+        SkinLocation skinLocation = new SkinLocation(skinHashHex, "hex:" + skinHashHex, false);
+        SkinChangerAPI.setPlayerSkin(ctx.get().getSender(), skinLocation);
     }
 
 }

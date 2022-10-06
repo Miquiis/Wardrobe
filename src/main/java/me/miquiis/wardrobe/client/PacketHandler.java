@@ -60,10 +60,13 @@ public class PacketHandler {
         try
         {
             byte[] skinHash = ImageUtils.createImageHash(msg.getSkinBytes());
+            System.out.println("Hello Im Here");
             if (!Wardrobe.getInstance().getClientTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), skinHash)))
             {
+                System.out.println("Hello Im Here 2");
                 Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(msg.getSkinBytes(), skinHash));
                 SkinLocation skinLocation = new SkinLocation(ImageUtils.byteToHex(skinHash), "hex:" + ImageUtils.byteToHex(skinHash), false);
+                System.out.println(Minecraft.getInstance().textureManager.getTexture(skinLocation.getSkinLocation()));
                 Minecraft.getInstance().textureManager.deleteTexture(skinLocation.getSkinLocation());
             }
         } catch (NoSuchAlgorithmException e) {

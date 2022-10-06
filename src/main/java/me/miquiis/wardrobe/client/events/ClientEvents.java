@@ -8,6 +8,7 @@ import me.miquiis.wardrobe.client.screens.WardrobeScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.inventory.ChestScreen;
 import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiOpenEvent;
@@ -33,6 +34,7 @@ public class ClientEvents {
         {
             event.setCanceled(true);
             Minecraft minecraft = Minecraft.getInstance();
+            System.out.println(event.getSkinLocation().getSkinLocation());
             try (LoadingCachedTexture downloadingTexture = new LoadingCachedTexture(null, event.getSkinLocation().getSkinURL().replace("hex:", ""), DefaultPlayerSkin.getDefaultSkinLegacy(), true, null)) {
                 minecraft.getTextureManager().loadTexture(event.getSkinLocation().getSkinLocation(), downloadingTexture);
             }

@@ -38,8 +38,8 @@ public class RequestSkinChangePacket {
       {
          ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> ctx.get().getSender()), new RequestSkinUploadPacket(msg.skinHash));
       }
-      String skinHashHex = ImageUtils.byteToHex(msg.skinHash);
-      SkinLocation skinLocation = new SkinLocation(skinHashHex, "hex:" + skinHashHex, false);
-      SkinChangerAPI.setPlayerSkin(ctx.get().getSender(), skinLocation);
+//      String skinHashHex = ImageUtils.byteToHex(msg.skinHash);
+//      SkinLocation skinLocation = new SkinLocation(skinHashHex, "hex:" + skinHashHex, false);
+//      SkinChangerAPI.setPlayerSkin(ctx.get().getSender(), skinLocation);
    }
 }

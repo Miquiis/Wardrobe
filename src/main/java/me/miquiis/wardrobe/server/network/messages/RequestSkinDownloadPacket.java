@@ -31,6 +31,7 @@ public class RequestSkinDownloadPacket {
 
    public static void handlePacket(final RequestSkinDownloadPacket msg, Supplier<NetworkEvent.Context> ctx) {
       Wardrobe.getInstance().getServerTextureCache().getCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), msg.skinHash)).ifPresent(cached -> {
+         System.out.println("Downloading");
          byte[] skinBytes = cached.getValue().getTextureBytes();
          ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> ctx.get().getSender()), new DownloadSkinPacket(skinBytes));
       });

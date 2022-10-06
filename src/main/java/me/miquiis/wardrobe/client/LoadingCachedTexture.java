@@ -108,7 +108,9 @@ public class LoadingCachedTexture extends SimpleTexture {
                if (!Wardrobe.getInstance().getClientTextureCache().hasCache(cachedPredicate))
                {
                   try {
+                     System.out.println("Request Skin Download");
                      ModNetwork.CHANNEL.sendToServer(new RequestSkinDownloadPacket(ImageUtils.hexToBytes(skinHex)));
+                     return;
                   } catch (Exception e)
                   {
                      e.printStackTrace();
