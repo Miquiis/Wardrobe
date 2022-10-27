@@ -17,39 +17,41 @@ public class UploadSkinPacket {
     private final byte[] skinBytes;
     private final byte[] skinHash;
     private final boolean skinIsSlim;
+    private final boolean skinIsBaby;
     private final RequestSkinPacket.RequestSkinPacketType skinUploadPacketType;
 
-    public UploadSkinPacket(byte[] skinBytes, byte[] skinHash, boolean skinIsSlim, RequestSkinPacket.RequestSkinPacketType skinUploadPacketType) {
+    public UploadSkinPacket(byte[] skinBytes, byte[] skinHash, boolean skinIsSlim, boolean skinIsBaby, RequestSkinPacket.RequestSkinPacketType skinUploadPacketType) {
         this.skinBytes = skinBytes;
         this.skinHash = skinHash;
         this.skinIsSlim = skinIsSlim;
+        this.skinIsBaby = skinIsBaby;
         this.skinUploadPacketType = skinUploadPacketType;
     }
 
     public static void encodePacket(UploadSkinPacket packet, PacketBuffer buf) {
-        buf.writeByteArray(packet.skinBytes).writeByteArray(packet.skinHash).writeBoolean(packet.skinIsSlim);
+        buf.writeByteArray(packet.skinBytes).writeByteArray(packet.skinHash).writeBoolean(packet.skinIsSlim).writeBoolean(packet.skinIsBaby);
         buf.writeEnumValue(packet.skinUploadPacketType);
     }
 
     public static UploadSkinPacket decodePacket(PacketBuffer buf) {
-        return new UploadSkinPacket(buf.readByteArray(), buf.readByteArray(), buf.readBoolean(), buf.readEnumValue(RequestSkinPacket.RequestSkinPacketType.class));
+        return new UploadSkinPacket(buf.readByteArray(), buf.readByteArray(), buf.readBoolean(), buf.readBoolean(), buf.readEnumValue(RequestSkinPacket.RequestSkinPacketType.class));
     }
 
     public static void handlePacket(final UploadSkinPacket msg, Supplier<NetworkEvent.Context> ctx) {
         byte[] skinHash = msg.skinHash;
         if (!Wardrobe.getInstance().getServerTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), skinHash)))
         {
-            Wardrobe.getInstance().getServerTextureCache().cache(new TextureCache(msg.skinBytes, skinHash, msg.skinIsSlim));
+            Wardrobe.getInstance().getServerTextureCache().cache(new TextureCache(msg.skinBytes, skinHash, msg.skinIsSlim, msg.skinIsBaby));
         }
         if (msg.skinUploadPacketType == RequestSkinPacket.RequestSkinPacketType.SEND_TO_CLIENT)
         {
             String skinHashHex = ImageUtils.byteToHex(msg.skinHash);
-            SkinLocation skinLocation = new SkinLocation(skinHashHex, "hex:" + skinHashHex, msg.skinIsSlim);
+            SkinLocation skinLocation = new SkinLocation(skinHashHex, "hex:" + skinHashHex, msg.skinIsSlim, msg.skinIsBaby);
             SkinChangerAPI.setPlayerSkin(ctx.get().getSender(), skinLocation);
         } else if (msg.skinUploadPacketType == RequestSkinPacket.RequestSkinPacketType.SAVE_TO_SERVER)
         {
             String skinHashHex = ImageUtils.byteToHex(msg.skinHash);
-            SkinLocation skinLocation = new SkinLocation(skinHashHex, "hex:" + skinHashHex, msg.skinIsSlim);
+            SkinLocation skinLocation = new SkinLocation(skinHashHex, "hex:" + skinHashHex, msg.skinIsSlim, msg.skinIsBaby);
             ServerWardrobe.addSkin(skinLocation);
         }
     }

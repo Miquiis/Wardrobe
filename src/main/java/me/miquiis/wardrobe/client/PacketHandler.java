@@ -32,7 +32,7 @@ public class PacketHandler {
         byte[] textureBytes = PersonalWardrobe.getSkinTextureByHash(msg.getSkinHash());
         if (textureBytes != null)
         {
-            ModNetwork.CHANNEL.sendToServer(new UploadSkinPacket(textureBytes, msg.getSkinHash(), PersonalWardrobe.getSkinIsSlimByHash(msg.getSkinHash()), msg.getSkinUploadPacketType()));
+            ModNetwork.CHANNEL.sendToServer(new UploadSkinPacket(textureBytes, msg.getSkinHash(), PersonalWardrobe.getSkinIsSlimByHash(msg.getSkinHash()), PersonalWardrobe.getSkinIsBabyByHash(msg.getSkinHash()), msg.getSkinUploadPacketType()));
         }
     }
 
@@ -49,10 +49,10 @@ public class PacketHandler {
         try
         {
             byte[] skinHash = ImageUtils.createImageHash(msg.getSkinBytes());
-            if (!Wardrobe.getInstance().getClientTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), skinHash) && cached.getValue().isTextureIsSlim() == msg.isSkinIsSlim()))
+            if (!Wardrobe.getInstance().getClientTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), skinHash) && cached.getValue().isTextureIsSlim() == msg.isSkinIsSlim() && cached.getValue().isTextureIsBaby() == msg.isSkinIsBaby()))
             {
-                Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(msg.getSkinBytes(), skinHash, msg.isSkinIsSlim()));
-                SkinLocation skinLocation = new SkinLocation(ImageUtils.byteToHex(skinHash), "hex:" + ImageUtils.byteToHex(skinHash), msg.isSkinIsSlim());
+                Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(msg.getSkinBytes(), skinHash, msg.isSkinIsSlim(), msg.isSkinIsBaby()));
+                SkinLocation skinLocation = new SkinLocation(ImageUtils.byteToHex(skinHash), "hex:" + ImageUtils.byteToHex(skinHash), msg.isSkinIsSlim(), msg.isSkinIsBaby());
                 Minecraft.getInstance().textureManager.deleteTexture(skinLocation.getSkinLocation());
                 SkinChangerAPIClient.loadSkin(skinLocation);
             }

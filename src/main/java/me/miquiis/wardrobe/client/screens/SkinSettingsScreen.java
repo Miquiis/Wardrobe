@@ -30,6 +30,7 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
     private TextFieldWidget skinNameField;
     private TextFieldWidget skinUrlField;
     private CheckboxButton isSlimBox;
+    private CheckboxButton isBabyBox;
 
     private Button saveButton;
     private Button deleteButton;
@@ -51,10 +52,12 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
         String prevTextName = skinNameField.getText();
         String prevURL = skinUrlField.getText();
         boolean prevSlim = isSlimBox.isChecked();
+        boolean prevBaby = isBabyBox.isChecked();
         super.resize(minecraft, width, height);
         skinNameField.setText(prevTextName);
         skinUrlField.setText(prevURL);
         if (prevSlim == !isSlimBox.isChecked()) isSlimBox.onPress();
+        if (prevBaby == !isBabyBox.isChecked()) isBabyBox.onPress();
     }
 
     @Override
@@ -92,13 +95,19 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
         this.isSlimBox = new CheckboxButton(this.guiLeft, this.guiTop, 20, 20, new StringTextComponent(""), skinLocation.isSlim());
         this.isSlimBox.visible = true;
         this.isSlimBox.active = true;
-        this.isSlimBox.x -= this.isSlimBox.getWidth() / 2;
+        this.isSlimBox.x -= this.isSlimBox.getWidth() / 2 - 20;
         this.isSlimBox.y -= this.isSlimBox.getHeight() / 2 + 16;
+
+        this.isBabyBox = new CheckboxButton(this.guiLeft, this.guiTop, 20, 20, new StringTextComponent(""), skinLocation.isBaby());
+        this.isBabyBox.visible = true;
+        this.isBabyBox.active = true;
+        this.isBabyBox.x -= this.isBabyBox.getWidth() / 2 + 20;
+        this.isBabyBox.y -= this.isBabyBox.getHeight() / 2 + 16;
 
         this.saveButton = addButton(new Button(this.guiLeft - 176 / 2, guiTop + 222 / 2, 60, 20, new StringTextComponent("Save"), p_onPress_1_ -> {
             if (currentTab == WardrobeTab.PERSONAL_WARDROBE)
             {
-                SkinLocation newSkinLocation = new SkinLocation(skinNameField.getText(), skinUrlField.getText(), isSlimBox.isChecked());
+                SkinLocation newSkinLocation = new SkinLocation(skinNameField.getText(), skinUrlField.getText(), isSlimBox.isChecked(), isBabyBox.isChecked());
                 PersonalWardrobe.modifySkin(skinLocation, newSkinLocation);
                 popUpScreen.finish();
             }
@@ -117,6 +126,7 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
         this.children.add(skinNameField);
         this.children.add(skinUrlField);
         this.children.add(isSlimBox);
+        this.children.add(isBabyBox);
     }
 
     @Override
@@ -130,10 +140,16 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
         skinNameField.render(matrixStack, mouseX, mouseY, partialTicks);
         skinUrlField.render(matrixStack, mouseX, mouseY, partialTicks);
         isSlimBox.render(matrixStack, mouseX, mouseY, partialTicks);
+        isBabyBox.render(matrixStack, mouseX, mouseY, partialTicks);
 
         if (isSlimBox.isHovered())
         {
             renderTooltip(matrixStack, new StringTextComponent("Has Small Arms?"), mouseX, mouseY);
+        }
+
+        if (isBabyBox.isHovered())
+        {
+            renderTooltip(matrixStack, new StringTextComponent("Is Baby?"), mouseX, mouseY);
         }
 
         font.drawStringWithShadow(matrixStack, "Skin Name", skinNameField.x, skinNameField.y - 12, 0xFFFFFF);

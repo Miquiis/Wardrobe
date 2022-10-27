@@ -61,13 +61,13 @@ public class PersonalWardrobe {
 
     public static void addSkin(SkinLocation skinLocation)
     {
-        skinsFileManager.saveObject(skinLocation.getSkinId(), new SkinLocation(skinLocation.getSkinId(), skinLocation.getSkinURL(), null, skinLocation.isSlim()));
+        skinsFileManager.saveObject(skinLocation.getSkinId(), new SkinLocation(skinLocation.getSkinId(), skinLocation.getSkinURL(), null, skinLocation.isSlim(), skinLocation.isBaby()));
         File skinFile = new File(skinLocation.getSkinURL());
         if (!skinFile.exists()) skinFile = new File(texturesFolder, skinLocation.getSkinURL());
         if (skinFile.exists())
         {
             try {
-                Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(Files.readAllBytes(skinFile.toPath()), ImageUtils.createImageHash(skinFile), skinLocation.isSlim()));
+                Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(Files.readAllBytes(skinFile.toPath()), ImageUtils.createImageHash(skinFile), skinLocation.isSlim(), skinLocation.isBaby()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -91,6 +91,21 @@ public class PersonalWardrobe {
                 if (ImageUtils.checkImagesHashes(ImageUtils.createImageHash(textureLocation), skinHash))
                 {
                     return skinLocation.isSlim();
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean getSkinIsBabyByHash(byte[] skinHash)
+    {
+        for (SkinLocation skinLocation : personalWardrobe) {
+            File textureLocation = new File(skinLocation.getSkinURL());
+            if (textureLocation.exists())
+            {
+                if (ImageUtils.checkImagesHashes(ImageUtils.createImageHash(textureLocation), skinHash))
+                {
+                    return skinLocation.isBaby();
                 }
             }
         }
@@ -124,14 +139,14 @@ public class PersonalWardrobe {
             if (textureFile.exists() && !FilenameUtils.getExtension(textureFile.getName()).isEmpty())
             {
                 try {
-                    Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(Files.readAllBytes(textureFile.toPath()), ImageUtils.createImageHash(textureFile), skinLocation.isSlim()));
+                    Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(Files.readAllBytes(textureFile.toPath()), ImageUtils.createImageHash(textureFile), skinLocation.isSlim(), skinLocation.isBaby()));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
             try
             {
-                return new SkinLocation(skinLocation.getSkinId(), textureFile.exists() ? textureFile.getAbsolutePath() : skinLocation.getSkinURL(), skinLocation.isSlim());
+                return new SkinLocation(skinLocation.getSkinId(), textureFile.exists() ? textureFile.getAbsolutePath() : skinLocation.getSkinURL(), skinLocation.isSlim(), skinLocation.isBaby());
             } catch (Exception e)
             {
                 return SkinLocation.EMPTY;

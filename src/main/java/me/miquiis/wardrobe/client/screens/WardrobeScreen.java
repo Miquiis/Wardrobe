@@ -187,7 +187,7 @@ public class WardrobeScreen extends Screen {
                 {
                     ModNetwork.CHANNEL.sendToServer(new LoadSkinPacket(selectedSkin));
                 } else {
-                    ModNetwork.CHANNEL.sendToServer(new RequestSkinPacket(ImageUtils.createImageHash(skinFile), selectedSkin.isSlim(), RequestSkinPacket.RequestSkinPacketType.SEND_TO_CLIENT));
+                    ModNetwork.CHANNEL.sendToServer(new RequestSkinPacket(ImageUtils.createImageHash(skinFile), selectedSkin.isSlim(), selectedSkin.isBaby(), RequestSkinPacket.RequestSkinPacketType.SEND_TO_CLIENT));
                 }
             } else if (currentTab == WardrobeTab.DATABASE_WARDROBE)
             {
@@ -202,12 +202,13 @@ public class WardrobeScreen extends Screen {
             File skinFile = new File(selectedSkin.getSkinURL());
             if (skinFile.exists())
             {
-                ModNetwork.CHANNEL.sendToServer(new RequestSkinPacket(ImageUtils.createImageHash(skinFile), selectedSkin.isSlim(), RequestSkinPacket.RequestSkinPacketType.SAVE_TO_SERVER));
+                ModNetwork.CHANNEL.sendToServer(new RequestSkinPacket(ImageUtils.createImageHash(skinFile), selectedSkin.isSlim(), selectedSkin.isBaby(), RequestSkinPacket.RequestSkinPacketType.SAVE_TO_SERVER));
             }
         }));
 
         this.clearSkinButton = addButton(new Button(guiLeft + 50 - 10 + 50, guiTop - 75, 20, 20, new StringTextComponent(""), p_onPress_1_ -> {
             ModNetwork.CHANNEL.sendToServer(new ClearSkinPacket());
+            minecraft.player.recalculateSize();
         }));
 
         this.modifySkinButton = addButton(new Button(guiLeft + 50 - 10 - 50, guiTop - 75, 20, 20, new StringTextComponent(""), p_onPress_1_ -> {

@@ -22,37 +22,39 @@ public class RequestSkinPacket {
 
    private final byte[] skinHash;
    private final boolean skinIsSlim;
+   private final boolean skinIsBaby;
    private final RequestSkinPacketType skinPacketType;
 
-   public RequestSkinPacket(byte[] skinHash, boolean skinIsSlim, RequestSkinPacketType skinPacketType) {
+   public RequestSkinPacket(byte[] skinHash, boolean skinIsSlim, boolean skinIsBaby, RequestSkinPacketType skinPacketType) {
       this.skinHash = skinHash;
       this.skinIsSlim = skinIsSlim;
+      this.skinIsBaby = skinIsBaby;
       this.skinPacketType = skinPacketType;
    }
 
    public static void encodePacket(RequestSkinPacket packet, PacketBuffer buf) {
-      buf.writeByteArray(packet.skinHash).writeBoolean(packet.skinIsSlim);
+      buf.writeByteArray(packet.skinHash).writeBoolean(packet.skinIsSlim).writeBoolean(packet.skinIsBaby);
       buf.writeEnumValue(packet.skinPacketType);
    }
 
    public static RequestSkinPacket decodePacket(PacketBuffer buf) {
-      return new RequestSkinPacket(buf.readByteArray(), buf.readBoolean(), buf.readEnumValue(RequestSkinPacketType.class));
+      return new RequestSkinPacket(buf.readByteArray(), buf.readBoolean(), buf.readBoolean(), buf.readEnumValue(RequestSkinPacketType.class));
    }
 
    public static void handlePacket(final RequestSkinPacket msg, Supplier<NetworkEvent.Context> ctx) {
-      if (!Wardrobe.getInstance().getServerTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), msg.skinHash) && cached.getValue().isTextureIsSlim() == msg.skinIsSlim))
+      if (!Wardrobe.getInstance().getServerTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), msg.skinHash) && cached.getValue().isTextureIsSlim() == msg.skinIsSlim && cached.getValue().isTextureIsBaby() == msg.skinIsBaby))
       {
          ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> ctx.get().getSender()), new RequestSkinUploadPacket(msg.skinHash, msg.skinPacketType));
       } else {
          if (msg.skinPacketType == RequestSkinPacketType.SEND_TO_CLIENT)
          {
             String skinHashHex = ImageUtils.byteToHex(msg.skinHash);
-            SkinLocation skinLocation = new SkinLocation(skinHashHex, "hex:" + skinHashHex, msg.skinIsSlim);
+            SkinLocation skinLocation = new SkinLocation(skinHashHex, "hex:" + skinHashHex, msg.skinIsSlim, msg.skinIsBaby);
             SkinChangerAPI.setPlayerSkin(ctx.get().getSender(), skinLocation);
          } else if (msg.skinPacketType == RequestSkinPacketType.SAVE_TO_SERVER)
          {
             String skinHashHex = ImageUtils.byteToHex(msg.skinHash);
-            SkinLocation skinLocation = new SkinLocation(skinHashHex, "hex:" + skinHashHex, msg.skinIsSlim);
+            SkinLocation skinLocation = new SkinLocation(skinHashHex, "hex:" + skinHashHex, msg.skinIsSlim, msg.skinIsBaby);
             ServerWardrobe.addSkin(skinLocation);
          }
       }

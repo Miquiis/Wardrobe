@@ -66,7 +66,7 @@ public class Database {
             try {
                 while (resultSet.next())
                 {
-                    skinLocations.add(new SkinLocation(resultSet.getString("name"), resultSet.getString("url"), resultSet.getBoolean("slim")));
+                    skinLocations.add(new SkinLocation(resultSet.getString("name"), resultSet.getString("url"), resultSet.getBoolean("slim"), resultSet.getBoolean("baby")));
                 }
             } catch (Exception e) {
                 LOGGER.error("Error trying to get ResultSet.");
@@ -107,7 +107,7 @@ public class Database {
             {
                 if (resultSet.next())
                 {
-                    SkinLocation skinLocation = new SkinLocation(skinId, resultSet.getString("url"), resultSet.getBoolean("slim"));
+                    SkinLocation skinLocation = new SkinLocation(skinId, resultSet.getString("url"), resultSet.getBoolean("slim"), resultSet.getBoolean("baby"));
                     Wardrobe.getInstance().getServerSkinLocationCache().cache(skinLocation, cachedPredicate);
                     return skinLocation;
                 }
