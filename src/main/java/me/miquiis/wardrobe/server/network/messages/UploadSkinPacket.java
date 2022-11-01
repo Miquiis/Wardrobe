@@ -6,8 +6,10 @@ import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.common.utils.ImageUtils;
 import me.miquiis.wardrobe.common.cache.TextureCache;
 import me.miquiis.wardrobe.server.ServerWardrobe;
+import me.miquiis.wardrobe.server.network.ModNetwork;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.util.Arrays;
 import java.util.function.Supplier;

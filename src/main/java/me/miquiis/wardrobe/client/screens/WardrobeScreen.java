@@ -96,6 +96,7 @@ public class WardrobeScreen extends Screen {
     private Button shareSkinButton;
     private Button clearSkinButton;
     private Button modifySkinButton;
+    private Button openPersonalWardrobeFolder;
 
     private boolean canRefresh = true;
     private boolean isLoading = true;
@@ -214,6 +215,10 @@ public class WardrobeScreen extends Screen {
         this.modifySkinButton = addButton(new Button(guiLeft + 50 - 10 - 50, guiTop - 75, 20, 20, new StringTextComponent(""), p_onPress_1_ -> {
             PopUpScreen popUpScreen = new PopUpScreen(this, new SkinSettingsScreen(selectedSkin, currentTab));
             minecraft.displayGuiScreen(popUpScreen);
+        }));
+
+        this.openPersonalWardrobeFolder = addButton(new Button(this.guiLeft - 60 - wardrobeWidth / 2 - 25, guiTop + wardrobeHeight / 2 + 2, 120, 20, new StringTextComponent("Open Wardrobe Folder"), p_onPress_1_ -> {
+            PersonalWardrobe.openSkinsFolder();
         }));
 
         this.minecraft.keyboardListener.enableRepeatEvents(true);
@@ -341,6 +346,7 @@ public class WardrobeScreen extends Screen {
 
         wearSkinButton.visible = selectedSkin != null;
         shareSkinButton.visible = selectedSkin != null && currentTab == WardrobeTab.PERSONAL_WARDROBE;
+        openPersonalWardrobeFolder.visible = currentTab == WardrobeTab.PERSONAL_WARDROBE;
         clearSkinButton.visible = !SkinChangerAPI.getPlayerSkin(Minecraft.getInstance().player).getSkinId().isEmpty();
         modifySkinButton.visible = selectedSkin != null;
 
@@ -476,7 +482,7 @@ public class WardrobeScreen extends Screen {
         });
 
         if (isLoading) {
-            drawFakePlayerOnScreen(width / 2 - (wardrobeWidth - 50), (height / 2 + 50), 50, mouseX, mouseY, LOADING_SKIN, false, 1f - ((loadingTick % 50) / 50f));
+            drawFakePlayerOnScreen(width / 2 - (wardrobeWidth - 50), (height / 2 + 50), 50, mouseX, mouseY, LOADING_SKIN, false, false, 1f - ((loadingTick % 50) / 50f));
         } else {
             for (int i = 0; i < 4; i++)
             {
@@ -492,7 +498,7 @@ public class WardrobeScreen extends Screen {
                                 SkinLocation skin = pageContent.getContents().get(((WardrobeSkinButton)p_onPress_1_).buttonId);
                                 selectedSkin = skin;
                             }));
-                            drawFakePlayerOnScreen(width / 2 - wardrobeWidth + 33 * i, height / 2 - 52 + 50 * j, 25, mouseX, mouseY, skinLocation.getSkinLocation(), skinLocation.isSlim());
+                            drawFakePlayerOnScreen(width / 2 - wardrobeWidth + 33 * i, height / 2 - 52 + 50 * j, 25, mouseX, mouseY, skinLocation.getSkinLocation(), skinLocation.isSlim(), skinLocation.isBaby());
                         }
                     }
                 }
@@ -543,7 +549,7 @@ public class WardrobeScreen extends Screen {
         entityrenderermanager.setRenderShadow(false);
         IRenderTypeBuffer.Impl irendertypebuffer$impl = Minecraft.getInstance().getRenderTypeBuffers().getBufferSource();
         RenderSystem.runAsFancy(() -> {
-            renderPlayerStatic(livingEntity, skinLocation.getSkinLocation(), skinLocation.isSlim(), 1f, entityrenderermanager, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, matrixstack, irendertypebuffer$impl, 15728880);
+            renderPlayerStatic(livingEntity, skinLocation.getSkinLocation(), skinLocation.isSlim(), skinLocation.isBaby(), 1f, entityrenderermanager, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, matrixstack, irendertypebuffer$impl, 15728880);
         });
         irendertypebuffer$impl.finish();
         entityrenderermanager.setRenderShadow(true);
@@ -555,12 +561,12 @@ public class WardrobeScreen extends Screen {
         RenderSystem.popMatrix();
     }
 
-    public static void drawFakePlayerOnScreen(int posX, int posY, int scale, float mouseX, float mouseY, ResourceLocation skinTexture, boolean isSlim)
+    public static void drawFakePlayerOnScreen(int posX, int posY, int scale, float mouseX, float mouseY, ResourceLocation skinTexture, boolean isSlim, boolean isChild)
     {
-        drawFakePlayerOnScreen(posX, posY, scale, mouseX, mouseY, skinTexture, isSlim, 1f);
+        drawFakePlayerOnScreen(posX, posY, scale, mouseX, mouseY, skinTexture, isSlim, isChild, 1f);
     }
 
-    public static void drawFakePlayerOnScreen(int posX, int posY, int scale, float mouseX, float mouseY, ResourceLocation skinTexture, boolean isSlim, float progress) {
+    public static void drawFakePlayerOnScreen(int posX, int posY, int scale, float mouseX, float mouseY, ResourceLocation skinTexture, boolean isSlim, boolean isChild, float progress) {
         float f = (float)Math.atan((double)(mouseX / 40.0F));
         float f1 = (float)Math.atan((double)(mouseY / 40.0F));
         RenderSystem.pushMatrix();
@@ -585,15 +591,15 @@ public class WardrobeScreen extends Screen {
         entityrenderermanager.setRenderShadow(false);
         IRenderTypeBuffer.Impl irendertypebuffer$impl = Minecraft.getInstance().getRenderTypeBuffers().getBufferSource();
         RenderSystem.runAsFancy(() -> {
-            renderPlayerStatic(fakePlayer, skinTexture, isSlim, progress, entityrenderermanager, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, matrixstack, irendertypebuffer$impl, 15728880);
+            renderPlayerStatic(fakePlayer, skinTexture, isSlim, isChild, progress, entityrenderermanager, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, matrixstack, irendertypebuffer$impl, 15728880);
         });
         irendertypebuffer$impl.finish();
         entityrenderermanager.setRenderShadow(true);
         RenderSystem.popMatrix();
     }
 
-    private static void renderPlayerStatic(AbstractClientPlayerEntity entityIn, ResourceLocation skin, boolean isSlim, float progress, EntityRendererManager rendererManager, double xIn, double yIn, double zIn, float rotationYawIn, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn) {
-        CustomPlayerRenderer entityrenderer = new CustomPlayerRenderer(rendererManager, skin, isSlim, progress);
+    private static void renderPlayerStatic(AbstractClientPlayerEntity entityIn, ResourceLocation skin, boolean isSlim, boolean isChild, float progress, EntityRendererManager rendererManager, double xIn, double yIn, double zIn, float rotationYawIn, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn) {
+        CustomPlayerRenderer entityrenderer = new CustomPlayerRenderer(rendererManager, skin, isSlim, isChild, progress);
         try {
             Vector3d vector3d = entityrenderer.getRenderOffset(entityIn, partialTicks);
             double d2 = xIn + vector3d.getX();

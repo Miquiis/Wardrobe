@@ -1,16 +1,7 @@
 package me.miquiis.wardrobe.server.network;
 
 import me.miquiis.wardrobe.Wardrobe;
-import me.miquiis.wardrobe.server.network.messages.ClearSkinPacket;
-import me.miquiis.wardrobe.server.network.messages.DownloadSkinPacket;
-import me.miquiis.wardrobe.server.network.messages.LoadSkinPacket;
-import me.miquiis.wardrobe.server.network.messages.RequestPagePacket;
-import me.miquiis.wardrobe.server.network.messages.RequestSkinPacket;
-import me.miquiis.wardrobe.server.network.messages.RequestSkinDownloadPacket;
-import me.miquiis.wardrobe.server.network.messages.RequestSkinUploadPacket;
-import me.miquiis.wardrobe.server.network.messages.SendPagePacket;
-import me.miquiis.wardrobe.server.network.messages.SendSkinChangePacket;
-import me.miquiis.wardrobe.server.network.messages.UploadSkinPacket;
+import me.miquiis.wardrobe.server.network.messages.*;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;

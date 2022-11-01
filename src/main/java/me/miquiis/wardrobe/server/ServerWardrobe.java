@@ -1,6 +1,8 @@
 package me.miquiis.wardrobe.server;
 
 import me.miquiis.skinchangerapi.common.SkinLocation;
+import net.minecraft.entity.player.ServerPlayerEntity;
+
 import java.util.ArrayList;
 import java.util.List;
 

@@ -7,11 +7,13 @@ import me.miquiis.wardrobe.common.WardrobePage;
 import me.miquiis.wardrobe.common.cache.TextureCache;
 import me.miquiis.wardrobe.common.utils.ImageUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.Util;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +53,11 @@ public class PersonalWardrobe {
         }
 
         init(true);
+    }
+
+    public static void openSkinsFolder()
+    {
+        Util.getOSType().openFile(texturesFolder);
     }
 
     public static void modifySkin(SkinLocation previousSkinLocation, SkinLocation newSkinLocation)
@@ -134,7 +141,7 @@ public class PersonalWardrobe {
         Wardrobe.getInstance().getClientTextureCache().clearCache();
         skinsFileManager.saveObject("default", new SkinLocation("default", "", null, false));
         List<SkinLocation> skinLocations = skinsFileManager.loadObjects(SkinLocation.class);
-        personalWardrobe.addAll(skinLocations.stream().map(skinLocation -> {
+        personalWardrobe.addAll(skinLocations.stream().filter(skinLocation -> !skinLocation.getSkinURL().isEmpty()).map(skinLocation -> {
             File textureFile = new File(texturesFolder, skinLocation.getSkinURL());
             if (textureFile.exists() && !FilenameUtils.getExtension(textureFile.getName()).isEmpty())
             {

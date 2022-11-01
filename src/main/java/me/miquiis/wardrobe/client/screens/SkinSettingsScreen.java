@@ -155,7 +155,7 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
         font.drawStringWithShadow(matrixStack, "Skin Name", skinNameField.x, skinNameField.y - 12, 0xFFFFFF);
         font.drawStringWithShadow(matrixStack, "Skin URL", skinUrlField.x, skinUrlField.y - 12, 0xFFFFFF);
 
-        WardrobeScreen.drawFakePlayerOnScreen(width / 2, height / 2 + 87, 40, mouseX, mouseY, skinLocation.getSkinLocation(), skinLocation.isSlim());
+        WardrobeScreen.drawFakePlayerOnScreen(width / 2, height / 2 + 87, 40, mouseX, mouseY, skinLocation.getSkinLocation(), skinLocation.isSlim(), skinLocation.isBaby());
     }
 
     @Override

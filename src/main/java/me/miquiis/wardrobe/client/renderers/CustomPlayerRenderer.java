@@ -49,11 +49,13 @@ public class CustomPlayerRenderer extends LivingRenderer<AbstractClientPlayerEnt
 
    private ResourceLocation playerSkin;
    private float progress;
+   private boolean isChild;
 
-   public CustomPlayerRenderer(EntityRendererManager renderManager, ResourceLocation playerSkin, boolean isSlim, float progress) {
+   public CustomPlayerRenderer(EntityRendererManager renderManager, ResourceLocation playerSkin, boolean isSlim, boolean isChild, float progress) {
       this(renderManager, isSlim);
       this.playerSkin = playerSkin;
       this.progress = progress;
+      this.isChild = isChild;
    }
 
    public CustomPlayerRenderer(EntityRendererManager renderManager, boolean useSmallArms) {
@@ -73,7 +75,6 @@ public class CustomPlayerRenderer extends LivingRenderer<AbstractClientPlayerEnt
    public void render(AbstractClientPlayerEntity entityIn, float entityYaw, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn) {
       this.setModelVisibilities(entityIn, progress);
       super.render(entityIn, entityYaw, partialTicks, matrixStackIn, bufferIn, packedLightIn);
-      //renderName(entityIn, new StringTextComponent("Test Name"), matrixStackIn, bufferIn, packedLightIn);
    }
 
    public Vector3d getRenderOffset(AbstractClientPlayerEntity entityIn, float partialTicks) {
@@ -81,67 +82,28 @@ public class CustomPlayerRenderer extends LivingRenderer<AbstractClientPlayerEnt
    }
    private void setModelVisibilities(AbstractClientPlayerEntity clientPlayer, float progress) {
       PlayerModel<AbstractClientPlayerEntity> playermodel = this.getEntityModel();
-      if (clientPlayer.isSpectator()) {
-         playermodel.setVisible(false);
-         playermodel.bipedHead.showModel = true;
-         playermodel.bipedHeadwear.showModel = true;
-      } else {
-         playermodel.setVisible(true);
-         int i = 1;
-         playermodel.bipedHeadwear.showModel = progress >= 0.14 * i++;
-         playermodel.bipedBodyWear.showModel = progress >= 0.14 * i++;
-         playermodel.bipedLeftLegwear.showModel = progress >= 0.14 * i++;
-         playermodel.bipedRightLegwear.showModel = progress >= 0.14 * i++;
-         playermodel.bipedLeftArmwear.showModel = progress >= 0.14 * i++;
-         playermodel.bipedRightArmwear.showModel = progress >= 0.14 * i;
-         playermodel.isSneak = clientPlayer.isCrouching();
-         BipedModel.ArmPose bipedmodel$armpose = func_241741_a_(clientPlayer, Hand.MAIN_HAND);
-         BipedModel.ArmPose bipedmodel$armpose1 = func_241741_a_(clientPlayer, Hand.OFF_HAND);
-         if (bipedmodel$armpose.func_241657_a_()) {
-            bipedmodel$armpose1 = clientPlayer.getHeldItemOffhand().isEmpty() ? BipedModel.ArmPose.EMPTY : BipedModel.ArmPose.ITEM;
-         }
-
-         if (clientPlayer.getPrimaryHand() == HandSide.RIGHT) {
-            playermodel.rightArmPose = bipedmodel$armpose;
-            playermodel.leftArmPose = bipedmodel$armpose1;
-         } else {
-            playermodel.rightArmPose = bipedmodel$armpose1;
-            playermodel.leftArmPose = bipedmodel$armpose;
-         }
+      playermodel.setVisible(true);
+      int i = 1;
+      playermodel.bipedHeadwear.showModel = progress >= 0.14 * i++;
+      playermodel.bipedBodyWear.showModel = progress >= 0.14 * i++;
+      playermodel.bipedLeftLegwear.showModel = progress >= 0.14 * i++;
+      playermodel.bipedRightLegwear.showModel = progress >= 0.14 * i++;
+      playermodel.bipedLeftArmwear.showModel = progress >= 0.14 * i++;
+      playermodel.bipedRightArmwear.showModel = progress >= 0.14 * i;
+      playermodel.isSneak = clientPlayer.isCrouching();
+      BipedModel.ArmPose bipedmodel$armpose = func_241741_a_(clientPlayer, Hand.MAIN_HAND);
+      BipedModel.ArmPose bipedmodel$armpose1 = func_241741_a_(clientPlayer, Hand.OFF_HAND);
+      if (bipedmodel$armpose.func_241657_a_()) {
+         bipedmodel$armpose1 = clientPlayer.getHeldItemOffhand().isEmpty() ? BipedModel.ArmPose.EMPTY : BipedModel.ArmPose.ITEM;
       }
 
-   }
-
-   private void setModelVisibilities(AbstractClientPlayerEntity clientPlayer) {
-      PlayerModel<AbstractClientPlayerEntity> playermodel = this.getEntityModel();
-      if (clientPlayer.isSpectator()) {
-         playermodel.setVisible(false);
-         playermodel.bipedHead.showModel = true;
-         playermodel.bipedHeadwear.showModel = true;
+      if (clientPlayer.getPrimaryHand() == HandSide.RIGHT) {
+         playermodel.rightArmPose = bipedmodel$armpose;
+         playermodel.leftArmPose = bipedmodel$armpose1;
       } else {
-         playermodel.setVisible(true);
-         playermodel.bipedHeadwear.showModel = true;
-         playermodel.bipedBodyWear.showModel = true;
-         playermodel.bipedLeftLegwear.showModel = true;
-         playermodel.bipedRightLegwear.showModel = true;
-         playermodel.bipedLeftArmwear.showModel = true;
-         playermodel.bipedRightArmwear.showModel = true;
-         playermodel.isSneak = clientPlayer.isCrouching();
-         BipedModel.ArmPose bipedmodel$armpose = func_241741_a_(clientPlayer, Hand.MAIN_HAND);
-         BipedModel.ArmPose bipedmodel$armpose1 = func_241741_a_(clientPlayer, Hand.OFF_HAND);
-         if (bipedmodel$armpose.func_241657_a_()) {
-            bipedmodel$armpose1 = clientPlayer.getHeldItemOffhand().isEmpty() ? BipedModel.ArmPose.EMPTY : BipedModel.ArmPose.ITEM;
-         }
-
-         if (clientPlayer.getPrimaryHand() == HandSide.RIGHT) {
-            playermodel.rightArmPose = bipedmodel$armpose;
-            playermodel.leftArmPose = bipedmodel$armpose1;
-         } else {
-            playermodel.rightArmPose = bipedmodel$armpose1;
-            playermodel.leftArmPose = bipedmodel$armpose;
-         }
+         playermodel.rightArmPose = bipedmodel$armpose1;
+         playermodel.leftArmPose = bipedmodel$armpose;
       }
-
    }
 
    private static BipedModel.ArmPose func_241741_a_(AbstractClientPlayerEntity p_241741_0_, Hand p_241741_1_) {
@@ -184,31 +146,11 @@ public class CustomPlayerRenderer extends LivingRenderer<AbstractClientPlayerEnt
    protected void preRenderCallback(AbstractClientPlayerEntity entitylivingbaseIn, MatrixStack matrixStackIn, float partialTickTime) {
       float f = 0.9375F;
       matrixStackIn.scale(0.9375F, 0.9375F, 0.9375F);
+      entityModel.isChild = isChild;
    }
 
    @Override
    protected void renderName(AbstractClientPlayerEntity entityIn, ITextComponent displayNameIn, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn) {
-   }
-
-   public void renderRightArm(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, AbstractClientPlayerEntity playerIn) {
-      this.renderItem(matrixStackIn, bufferIn, combinedLightIn, playerIn, (this.entityModel).bipedRightArm, (this.entityModel).bipedRightArmwear);
-   }
-
-   public void renderLeftArm(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, AbstractClientPlayerEntity playerIn) {
-      this.renderItem(matrixStackIn, bufferIn, combinedLightIn, playerIn, (this.entityModel).bipedLeftArm, (this.entityModel).bipedLeftArmwear);
-   }
-
-   private void renderItem(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, AbstractClientPlayerEntity playerIn, ModelRenderer rendererArmIn, ModelRenderer rendererArmwearIn) {
-      PlayerModel<AbstractClientPlayerEntity> playermodel = this.getEntityModel();
-      this.setModelVisibilities(playerIn);
-      playermodel.swingProgress = 0.0F;
-      playermodel.isSneak = false;
-      playermodel.swimAnimation = 0.0F;
-      playermodel.setRotationAngles(playerIn, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
-      rendererArmIn.rotateAngleX = 0.0F;
-      rendererArmIn.render(matrixStackIn, bufferIn.getBuffer(RenderType.getEntitySolid(playerIn.getLocationSkin())), combinedLightIn, OverlayTexture.NO_OVERLAY);
-      rendererArmwearIn.rotateAngleX = 0.0F;
-      rendererArmwearIn.render(matrixStackIn, bufferIn.getBuffer(RenderType.getEntityTranslucent(playerIn.getLocationSkin())), combinedLightIn, OverlayTexture.NO_OVERLAY);
    }
 
    protected void applyRotations(AbstractClientPlayerEntity entityLiving, MatrixStack matrixStackIn, float ageInTicks, float rotationYaw, float partialTicks) {

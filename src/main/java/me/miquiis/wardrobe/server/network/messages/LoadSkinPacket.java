@@ -2,8 +2,10 @@ package me.miquiis.wardrobe.server.network.messages;
 
 import me.miquiis.skinchangerapi.SkinChangerAPI;
 import me.miquiis.skinchangerapi.common.SkinLocation;
+import me.miquiis.wardrobe.server.network.ModNetwork;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.util.function.Supplier;
 
