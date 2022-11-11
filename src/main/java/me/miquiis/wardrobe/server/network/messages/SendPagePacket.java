@@ -20,14 +20,16 @@ public class SendPagePacket {
    private WardrobePage.PageSort pageSort;
    private boolean isAscending;
    private int page;
+   private boolean hasNextPage;
    private RequestPagePacket.RequestPagePacketType requestPagePacket;
 
-   public SendPagePacket(List<SkinLocation> pageContents, String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int page, RequestPagePacket.RequestPagePacketType requestPagePacket) {
+   public SendPagePacket(List<SkinLocation> pageContents, String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int page, boolean hasNextPage, RequestPagePacket.RequestPagePacketType requestPagePacket) {
       this.pageContents = pageContents;
       this.searchBar = searchBar;
       this.pageSort = pageSort;
       this.isAscending = isAscending;
       this.page = page;
+      this.hasNextPage = hasNextPage;
       this.requestPagePacket = requestPagePacket;
    }
 
@@ -38,7 +40,7 @@ public class SendPagePacket {
          pageContents.add(SkinLocation.SKIN_LOCATION.write(skinLocation));
       });
       compoundNBT.put("PageContents", pageContents);
-      buf.writeCompoundTag(compoundNBT).writeString(packet.searchBar).writeEnumValue(packet.pageSort).writeBoolean(packet.isAscending).writeInt(packet.page);
+      buf.writeCompoundTag(compoundNBT).writeString(packet.searchBar).writeEnumValue(packet.pageSort).writeBoolean(packet.isAscending).writeInt(packet.page).writeBoolean(packet.hasNextPage);
       buf.writeEnumValue(packet.requestPagePacket);
    }
 
@@ -49,7 +51,7 @@ public class SendPagePacket {
       listNBT.forEach(inbt -> {
          skinLocations.add(SkinLocation.SKIN_LOCATION.read(inbt));
       });
-      return new SendPagePacket(skinLocations, buf.readString(), buf.readEnumValue(WardrobePage.PageSort.class), buf.readBoolean(), buf.readInt(), buf.readEnumValue(RequestPagePacket.RequestPagePacketType.class));
+      return new SendPagePacket(skinLocations, buf.readString(), buf.readEnumValue(WardrobePage.PageSort.class), buf.readBoolean(), buf.readInt(), buf.readBoolean(), buf.readEnumValue(RequestPagePacket.RequestPagePacketType.class));
    }
 
    public static void handlePacket(final SendPagePacket msg, Supplier<NetworkEvent.Context> ctx) {
@@ -75,6 +77,8 @@ public class SendPagePacket {
    public boolean isAscending() {
       return isAscending;
    }
+
+   public boolean hasNextPage() { return hasNextPage; }
 
    public RequestPagePacket.RequestPagePacketType getRequestPagePacket() {
       return requestPagePacket;

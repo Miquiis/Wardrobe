@@ -97,6 +97,7 @@ public class WardrobeScreen extends Screen {
     private Button clearSkinButton;
     private Button modifySkinButton;
     private Button openPersonalWardrobeFolder;
+    private Button addSkinButton;
 
     private boolean canRefresh = true;
     private boolean isLoading = true;
@@ -221,6 +222,11 @@ public class WardrobeScreen extends Screen {
             PersonalWardrobe.openSkinsFolder();
         }));
 
+        this.addSkinButton = addButton(new Button(this.guiLeft - wardrobeWidth - 50 + 30, guiTop + wardrobeHeight / 2 + 2, 60, 20, new StringTextComponent("Add Skin"), p_onPress_1_ -> {
+            PopUpScreen popUpScreen = new PopUpScreen(this, new AddSkinScreen(currentTab));
+            minecraft.displayGuiScreen(popUpScreen);
+        }));
+
         this.minecraft.keyboardListener.enableRepeatEvents(true);
         this.searchField = new TextFieldWidget(this.font, this.guiLeft + 82, this.guiTop + 6, 80, 9, new TranslationTextComponent("itemGroup.search"));
         this.searchField.setMaxStringLength(50);
@@ -235,6 +241,7 @@ public class WardrobeScreen extends Screen {
         this.wearSkinButton.visible = false;
         this.clearSkinButton.visible = false;
         this.modifySkinButton.visible = false;
+        this.addSkinButton.visible = false;
 
         if (isFirstLoad)
         {
@@ -242,6 +249,10 @@ public class WardrobeScreen extends Screen {
             refreshPage(true);
         }
         else refreshPage(false);
+    }
+
+    public void setHasNextPage(boolean hasNextPage) {
+        this.hasNextPage = hasNextPage;
     }
 
     public void refreshPage(boolean forceRefresh)
@@ -271,7 +282,7 @@ public class WardrobeScreen extends Screen {
                 refreshPage(false);
             } else if (currentTab == WardrobeTab.DATABASE_WARDROBE)
             {
-                ModNetwork.CHANNEL.sendToServer(new RequestPagePacket(searchField.getText(), pageSort, isAscending, currentPage, 1, RequestPagePacket.RequestPagePacketType.DATABASE));
+                ModNetwork.CHANNEL.sendToServer(new RequestPagePacket(searchField.getText(), pageSort, isAscending, currentPage, (currentPage - 1) * 16, RequestPagePacket.RequestPagePacketType.DATABASE));
                 hasNextPage = false;
                 isLoading = true;
             }  else if (currentTab == WardrobeTab.SERVER_WARDROBE)
@@ -302,7 +313,7 @@ public class WardrobeScreen extends Screen {
             {
                 currentPage++;
                 hasNextPage = false;
-                refreshPage(true);
+                refreshPage(false);
             }
         }
     }
@@ -347,10 +358,11 @@ public class WardrobeScreen extends Screen {
         wearSkinButton.visible = selectedSkin != null;
         shareSkinButton.visible = selectedSkin != null && currentTab == WardrobeTab.PERSONAL_WARDROBE;
         openPersonalWardrobeFolder.visible = currentTab == WardrobeTab.PERSONAL_WARDROBE;
+        addSkinButton.visible = currentTab == WardrobeTab.DATABASE_WARDROBE;
         clearSkinButton.visible = !SkinChangerAPI.getPlayerSkin(Minecraft.getInstance().player).getSkinId().isEmpty();
         modifySkinButton.visible = selectedSkin != null;
 
-        modifySkinButton.active = currentTab == WardrobeTab.PERSONAL_WARDROBE;
+        modifySkinButton.active = currentTab == WardrobeTab.PERSONAL_WARDROBE || currentTab == WardrobeTab.DATABASE_WARDROBE;
 
         if (!lastSearchField.equals(searchField.getText()))
         {
@@ -511,7 +523,8 @@ public class WardrobeScreen extends Screen {
         {
             drawPlayerOnScreen(playerX, playerY, 50, -mouseX + playerX, -mouseY + playerY - 80, minecraft.player, selectedSkin);
         } else {
-            drawPlayerOnScreen(playerX, playerY, 50, -mouseX + playerX, -mouseY + playerY - 80, minecraft.player, new SkinLocation(minecraft.player.getUniqueID().toString(), "", minecraft.player.getLocationSkin()));
+            SkinLocation skinLocation = SkinChangerAPI.getPlayerSkin(minecraft.player);
+            drawPlayerOnScreen(playerX, playerY, 50, -mouseX + playerX, -mouseY + playerY - 80, minecraft.player, !skinLocation.getSkinId().isEmpty() ? skinLocation : new SkinLocation(minecraft.player.getUniqueID().toString(), "", minecraft.player.getLocationSkin()));
         }
     }
 

@@ -24,6 +24,7 @@ public class PacketHandler {
 
         if (Minecraft.getInstance().currentScreen instanceof WardrobeScreen)
         {
+            ((WardrobeScreen)Minecraft.getInstance().currentScreen).setHasNextPage(msg.hasNextPage());
             ((WardrobeScreen)Minecraft.getInstance().currentScreen).refreshPage(false);
         }
     }

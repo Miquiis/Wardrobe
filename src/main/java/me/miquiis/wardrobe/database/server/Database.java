@@ -59,9 +59,19 @@ public class Database {
         return "uid " + (isAscending ? "DESC" : "ASC");
     }
 
+    public CompletableFuture<Void> deleteSkin(String skinId)
+    {
+        return mySQL.asyncUpdate(
+                String.format(
+                        "DELETE FROM skins_dev WHERE name='%s'",
+                        skinId
+                )
+        );
+    }
+
     public CompletableFuture<List<SkinLocation>> fetchPage(String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
     {
-        return mySQL.asyncResult("SELECT * FROM skins_dev WHERE uid>=" + startingAt + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + " LIMIT 16;").handleAsync((resultSet, throwable) -> {
+        return mySQL.asyncResult("SELECT * FROM skins_dev" + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + " LIMIT " + startingAt + "," + 16 + startingAt + ";").handleAsync((resultSet, throwable) -> {
             List<SkinLocation> skinLocations = new ArrayList<>();
             try {
                 while (resultSet.next())
@@ -80,13 +90,39 @@ public class Database {
         });
     }
 
-    public CompletableFuture<Void> saveSkinURL(String skinId, String skinURL, boolean isSlim)
+    public CompletableFuture<Boolean> hasNextPage(String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
+    {
+        return mySQL.asyncResult("SELECT * FROM skins_dev" + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + " LIMIT " + startingAt + "," + 16 + startingAt + ";").handleAsync((resultSet, throwable) -> {
+            boolean hasNext = false;
+            try {
+                hasNext = resultSet.next();
+            } catch (Exception e) {
+                LOGGER.error("Error trying to get ResultSet.");
+            }
+            try {
+                resultSet.close();
+            } catch (SQLException ignored) {}
+            return hasNext;
+        });
+    }
+
+    public CompletableFuture<Void> saveSkinURL(String skinId, String skinURL, boolean isSlim, boolean isBaby)
     {
         return mySQL.asyncUpdate(
                 String.format(
-                         "INSERT INTO skins_dev (name, url, slim) VALUES ('%s', '%s', %s)" +
-                                "ON DUPLICATE KEY UPDATE url=VALUES(url), slim=VALUES(slim);",
-                        skinId, skinURL, isSlim
+                         "INSERT INTO skins_dev (name, url, slim, baby) VALUES ('%s', '%s', %s, %s)" +
+                                "ON DUPLICATE KEY UPDATE url=VALUES(url), slim=VALUES(slim), baby=VALUES(baby);",
+                        skinId, skinURL, isSlim, isBaby
+                )
+        );
+    }
+
+    public CompletableFuture<Void> updateSkinURL(String oldSkinId, String skinId, String skinURL, boolean isSlim, boolean isBaby)
+    {
+        return mySQL.asyncUpdate(
+                String.format(
+                        "UPDATE skins_dev SET name = '%s', url = '%s', slim = %s, baby = %s WHERE name = '%s';",
+                        skinId, skinURL, isSlim, isBaby, oldSkinId
                 )
         );
     }

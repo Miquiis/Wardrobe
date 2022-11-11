@@ -61,10 +61,6 @@ public class ModCommand {
                     });
                     return 1;
                 })))
-                .then(Commands.literal("saveSkin").then(Commands.argument("skinId", StringArgumentType.string()).then(Commands.argument("skinURL", StringArgumentType.string()).then(Commands.argument("isSlim", BoolArgumentType.bool()).executes(context -> {
-                    new Database().saveSkinURL(StringArgumentType.getString(context, "skinId"), StringArgumentType.getString(context, "skinURL"), BoolArgumentType.getBool(context, "isSlim"));
-                    return 1;
-                })))))
         );
     }
 

@@ -26,6 +26,9 @@ public class ModNetwork {
         CHANNEL.registerMessage(7, DownloadSkinPacket.class, DownloadSkinPacket::encodePacket, DownloadSkinPacket::decodePacket, DownloadSkinPacket::handlePacket);
         CHANNEL.registerMessage(8, SendSkinChangePacket.class, SendSkinChangePacket::encodePacket, SendSkinChangePacket::decodePacket, SendSkinChangePacket::handlePacket);
         CHANNEL.registerMessage(9, RequestSkinDownloadPacket.class, RequestSkinDownloadPacket::encodePacket, RequestSkinDownloadPacket::decodePacket, RequestSkinDownloadPacket::handlePacket);
+        CHANNEL.registerMessage(10, AddSkinToDatabasePacket.class, AddSkinToDatabasePacket::encodePacket, AddSkinToDatabasePacket::decodePacket, AddSkinToDatabasePacket::handlePacket);
+        CHANNEL.registerMessage(11, RemoveSkinFromDatabasePacket.class, RemoveSkinFromDatabasePacket::encodePacket, RemoveSkinFromDatabasePacket::decodePacket, RemoveSkinFromDatabasePacket::handlePacket);
+        CHANNEL.registerMessage(12, ModifySkinToDatabasePacket.class, ModifySkinToDatabasePacket::encodePacket, ModifySkinToDatabasePacket::decodePacket, ModifySkinToDatabasePacket::handlePacket);
     }
 
 }

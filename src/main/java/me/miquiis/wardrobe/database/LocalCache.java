@@ -54,6 +54,8 @@ public class LocalCache<T> {
         cache.add(new Cached(cacheValue));
     }
 
+    public int getCacheSize() { return this.cache.size(); }
+
     public void clearCache()
     {
         this.cache.clear();

@@ -1,33 +1,34 @@
 package me.miquiis.wardrobe.client.screens;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import me.miquiis.skinchangerapi.SkinChangerAPI;
+import me.miquiis.skinchangerapi.client.SkinChangerAPIClient;
 import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.client.PersonalWardrobe;
 import me.miquiis.wardrobe.common.WardrobeTab;
-import me.miquiis.wardrobe.database.server.Database;
 import me.miquiis.wardrobe.server.network.ModNetwork;
 import me.miquiis.wardrobe.server.network.messages.AddSkinToDatabasePacket;
-import me.miquiis.wardrobe.server.network.messages.ModifySkinToDatabasePacket;
-import me.miquiis.wardrobe.server.network.messages.RemoveSkinFromDatabasePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.gui.widget.button.CheckboxButton;
+import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.commons.io.FilenameUtils;
 
-public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScreen {
+import java.net.URL;
+
+public class AddSkinScreen extends Screen implements PopUpScreen.IPopUpScreen {
 
     private static final ResourceLocation WARDROBE_SETTINGS = new ResourceLocation(Wardrobe.MOD_ID, "textures/gui/wardrobe_settings_icons.png");
 
     private PopUpScreen popUpScreen;
-    private SkinLocation skinLocation;
     private WardrobeTab currentTab;
+    private SkinLocation tempSkinLocation;
 
     private int guiLeft;
     private int guiTop;
@@ -40,9 +41,10 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
     private Button saveButton;
     private Button deleteButton;
 
-    public SkinSettingsScreen(SkinLocation skinLocation, WardrobeTab currentTab) {
-        super(new StringTextComponent("Skin Settings"));
-        this.skinLocation = skinLocation;
+    private String lastSearchField;
+
+    public AddSkinScreen(WardrobeTab currentTab) {
+        super(new StringTextComponent("Add Skin"));
         this.currentTab = currentTab;
     }
 
@@ -50,6 +52,28 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
     public void tick() {
         super.tick();
         skinNameField.tick();
+
+        if (!skinUrlField.getText().equals(lastSearchField))
+        {
+            lastSearchField = skinUrlField.getText();
+            tempSkinLocation = new SkinLocation(skinNameField.getText(), skinUrlField.getText(), isSlimBox.isChecked(), isBabyBox.isChecked());
+            SkinChangerAPIClient.loadSkin(tempSkinLocation);
+        }
+    }
+
+    public static boolean isValid(String url)
+    {
+        /* Try creating a valid URL */
+        try {
+            new URL(url).toURI();
+            return true;
+        }
+
+        // If there was an Exception
+        // while creating URL object
+        catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
@@ -83,7 +107,6 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
         this.skinNameField.setCanLoseFocus(true);
         this.skinNameField.x -= this.skinNameField.getAdjustedWidth() / 2 + 4;
         this.skinNameField.y -= this.skinNameField.getHeight() / 2 + 80;
-        this.skinNameField.setText(skinLocation.getSkinId());
 
         this.skinUrlField = new TextFieldWidget(this.font, this.guiLeft, this.guiTop, 80, 9, new TranslationTextComponent("itemGroup.search"));
         this.skinUrlField.setMaxStringLength(Integer.MAX_VALUE);
@@ -95,41 +118,26 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
         this.skinUrlField.setCanLoseFocus(true);
         this.skinUrlField.x -= this.skinUrlField.getAdjustedWidth() / 2 + 4;
         this.skinUrlField.y -= this.skinUrlField.getHeight() / 2 + 40;
-        this.skinUrlField.setText(currentTab == WardrobeTab.PERSONAL_WARDROBE ? FilenameUtils.getName(skinLocation.getSkinURL()) : skinLocation.getSkinURL());
 
-        this.isSlimBox = new CheckboxButton(this.guiLeft, this.guiTop, 20, 20, new StringTextComponent(""), skinLocation.isSlim());
+        this.isSlimBox = new CheckboxButton(this.guiLeft, this.guiTop, 20, 20, new StringTextComponent(""), false);
         this.isSlimBox.visible = true;
         this.isSlimBox.active = true;
         this.isSlimBox.x -= this.isSlimBox.getWidth() / 2 - 20;
         this.isSlimBox.y -= this.isSlimBox.getHeight() / 2 + 16;
 
-        this.isBabyBox = new CheckboxButton(this.guiLeft, this.guiTop, 20, 20, new StringTextComponent(""), skinLocation.isBaby());
+        this.isBabyBox = new CheckboxButton(this.guiLeft, this.guiTop, 20, 20, new StringTextComponent(""), false);
         this.isBabyBox.visible = true;
         this.isBabyBox.active = true;
         this.isBabyBox.x -= this.isBabyBox.getWidth() / 2 + 20;
         this.isBabyBox.y -= this.isBabyBox.getHeight() / 2 + 16;
 
-        this.saveButton = addButton(new Button(this.guiLeft - 176 / 2, guiTop + 222 / 2, 60, 20, new StringTextComponent("Save"), p_onPress_1_ -> {
-            if (currentTab == WardrobeTab.PERSONAL_WARDROBE)
-            {
-                SkinLocation newSkinLocation = new SkinLocation(skinNameField.getText(), skinUrlField.getText(), isSlimBox.isChecked(), isBabyBox.isChecked());
-                PersonalWardrobe.modifySkin(skinLocation, newSkinLocation);
-            } else if (currentTab == WardrobeTab.DATABASE_WARDROBE)
-            {
-                SkinLocation newSkinLocation = new SkinLocation(skinNameField.getText(), skinUrlField.getText(), isSlimBox.isChecked(), isBabyBox.isChecked());
-                ModNetwork.CHANNEL.sendToServer(new ModifySkinToDatabasePacket(skinLocation, newSkinLocation));
-            }
+        this.saveButton = addButton(new Button(this.guiLeft - 176 / 2, guiTop + 222 / 2, 60, 20, new StringTextComponent("Add"), p_onPress_1_ -> {
+            SkinLocation skinLocation = new SkinLocation(skinNameField.getText(), skinUrlField.getText(), isSlimBox.isChecked(), isBabyBox.isChecked());
+            ModNetwork.CHANNEL.sendToServer(new AddSkinToDatabasePacket(skinLocation));
             popUpScreen.finish();
         }));
 
-        this.deleteButton = addButton(new Button(this.guiLeft + 176 / 2, guiTop + 222 / 2, 60, 20, new StringTextComponent("\u00A7cDelete"), p_onPress_1_ -> {
-            if (currentTab == WardrobeTab.PERSONAL_WARDROBE)
-            {
-                PersonalWardrobe.deleteSkin(skinLocation);
-            } else if (currentTab == WardrobeTab.DATABASE_WARDROBE)
-            {
-                ModNetwork.CHANNEL.sendToServer(new RemoveSkinFromDatabasePacket(skinLocation));
-            }
+        this.deleteButton = addButton(new Button(this.guiLeft + 176 / 2, guiTop + 222 / 2, 60, 20, new StringTextComponent("\u00A7cCancel"), p_onPress_1_ -> {
             popUpScreen.finish();
         }));
 
@@ -167,7 +175,7 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
         font.drawStringWithShadow(matrixStack, "Skin Name", skinNameField.x, skinNameField.y - 12, 0xFFFFFF);
         font.drawStringWithShadow(matrixStack, "Skin URL", skinUrlField.x, skinUrlField.y - 12, 0xFFFFFF);
 
-        WardrobeScreen.drawFakePlayerOnScreen(width / 2, height / 2 + 87, 40, mouseX, mouseY, skinLocation.getSkinLocation(), skinLocation.isSlim(), skinLocation.isBaby());
+        WardrobeScreen.drawFakePlayerOnScreen(width / 2, height / 2 + 87, 40, mouseX, mouseY, tempSkinLocation == null ? DefaultPlayerSkin.getDefaultSkinLegacy() : isValid(tempSkinLocation.getSkinURL()) ? tempSkinLocation.getSkinLocation() : DefaultPlayerSkin.getDefaultSkinLegacy(), isSlimBox.isChecked(), isBabyBox.isChecked());
     }
 
     @Override

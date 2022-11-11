@@ -8,6 +8,7 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.PacketDistributor;
 
+import javax.xml.crypto.Data;
 import java.util.function.Supplier;
 
 public class RequestPagePacket {
@@ -46,10 +47,12 @@ public class RequestPagePacket {
       if (msg.requestPagePacket == RequestPagePacketType.DATABASE)
       {
          new Database().fetchPage(msg.searchBar, msg.pageSort, msg.isAscending, msg.startsAt).thenAcceptAsync(skinLocations -> {
-            ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> ctx.get().getSender()), new SendPagePacket(skinLocations, msg.searchBar, msg.pageSort, msg.isAscending, msg.page, msg.requestPagePacket));
+            new Database().hasNextPage(msg.searchBar, msg.pageSort, msg.isAscending, msg.startsAt + 16).thenAcceptAsync(hasNextPage -> {
+               ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> ctx.get().getSender()), new SendPagePacket(skinLocations, msg.searchBar, msg.pageSort, msg.isAscending, msg.page, hasNextPage, msg.requestPagePacket));
+            });
          });
       } else {
-         ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> ctx.get().getSender()), new SendPagePacket(ServerWardrobe.getServerWardrobe(), msg.searchBar, msg.pageSort, msg.isAscending, msg.page, msg.requestPagePacket));
+         ModNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> ctx.get().getSender()), new SendPagePacket(ServerWardrobe.getServerWardrobe(), msg.searchBar, msg.pageSort, msg.isAscending, msg.page, false, msg.requestPagePacket));
       }
    }
 }
