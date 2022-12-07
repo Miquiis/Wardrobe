@@ -13,7 +13,7 @@ public class Configs {
 
         private static final String DEFAULT_HOST = "localhost";
         private static final String DEFAULT_PORT = "3306";
-        private static final String DEFAULT_DATABASE = "";
+        private static final String DEFAULT_DATABASE = "wardrobe";
         private static final String DEFAULT_USERNAME = "root";
         private static final String DEFAULT_PASSWORD = "";
 

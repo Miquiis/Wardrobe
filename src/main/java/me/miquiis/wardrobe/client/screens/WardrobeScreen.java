@@ -98,6 +98,7 @@ public class WardrobeScreen extends Screen {
     private Button modifySkinButton;
     private Button openPersonalWardrobeFolder;
     private Button addSkinButton;
+    private Button addFolderButton;
 
     private boolean canRefresh = true;
     private boolean isLoading = true;
@@ -107,6 +108,8 @@ public class WardrobeScreen extends Screen {
     private final int wardrobeHeight = 230;
 
     private boolean isFirstLoad;
+
+    private final int PLAYER_TAB_OFFSET = 50;
 
     public WardrobeScreen(ITextComponent titleIn) {
         super(titleIn);
@@ -181,7 +184,7 @@ public class WardrobeScreen extends Screen {
             refreshPage(false);
         }));
 
-        this.wearSkinButton = addButton(new Button(guiLeft + 50 - 40, guiTop + 50 + 10, 80, 20, new StringTextComponent("Wear Skin"), p_onPress_1_ -> {
+        this.wearSkinButton = addButton(new Button(guiLeft + 50 - 40 + PLAYER_TAB_OFFSET, guiTop + 50 + 10, 80, 20, new StringTextComponent("Wear Skin"), p_onPress_1_ -> {
             if (currentTab == WardrobeTab.PERSONAL_WARDROBE)
             {
                 File skinFile = new File(selectedSkin.getSkinURL());
@@ -200,7 +203,7 @@ public class WardrobeScreen extends Screen {
             }
         }));
 
-        this.shareSkinButton = addButton(new Button(guiLeft + 50 - 50, guiTop + 50 + 32, 100, 20, new StringTextComponent("Send to Server"), p_onPress_1_ -> {
+        this.shareSkinButton = addButton(new Button(guiLeft + 50 - 50 + PLAYER_TAB_OFFSET, guiTop + 50 + 32, 100, 20, new StringTextComponent("Send to Server"), p_onPress_1_ -> {
             File skinFile = new File(selectedSkin.getSkinURL());
             if (skinFile.exists())
             {
@@ -208,12 +211,12 @@ public class WardrobeScreen extends Screen {
             }
         }));
 
-        this.clearSkinButton = addButton(new Button(guiLeft + 50 - 10 + 50, guiTop - 75, 20, 20, new StringTextComponent(""), p_onPress_1_ -> {
+        this.clearSkinButton = addButton(new Button(guiLeft + 50 - 10 + 50 + PLAYER_TAB_OFFSET, guiTop - 75, 20, 20, new StringTextComponent(""), p_onPress_1_ -> {
             ModNetwork.CHANNEL.sendToServer(new ClearSkinPacket());
             minecraft.player.recalculateSize();
         }));
 
-        this.modifySkinButton = addButton(new Button(guiLeft + 50 - 10 - 50, guiTop - 75, 20, 20, new StringTextComponent(""), p_onPress_1_ -> {
+        this.modifySkinButton = addButton(new Button(guiLeft + 50 - 10 - 50 + PLAYER_TAB_OFFSET, guiTop - 75, 20, 20, new StringTextComponent(""), p_onPress_1_ -> {
             PopUpScreen popUpScreen = new PopUpScreen(this, new SkinSettingsScreen(selectedSkin, currentTab));
             minecraft.displayGuiScreen(popUpScreen);
         }));
@@ -224,6 +227,12 @@ public class WardrobeScreen extends Screen {
 
         this.addSkinButton = addButton(new Button(this.guiLeft - wardrobeWidth - 50 + 30, guiTop + wardrobeHeight / 2 + 2, 60, 20, new StringTextComponent("Add Skin"), p_onPress_1_ -> {
             PopUpScreen popUpScreen = new PopUpScreen(this, new AddSkinScreen(currentTab));
+            minecraft.displayGuiScreen(popUpScreen);
+        }));
+
+        this.addFolderButton = addButton(new DontRenderButton(this.guiLeft - 52 + 27, this.guiTop - wardrobeHeight / 2 + 10, 28, 28, new StringTextComponent("add_folder_button"), p_onPress_1_ -> {
+            System.out.println("Add Folder click");
+            PopUpScreen popUpScreen = new PopUpScreen(this, new FolderSettingsScreen(selectedSkin, currentTab));
             minecraft.displayGuiScreen(popUpScreen);
         }));
 
@@ -411,6 +420,9 @@ public class WardrobeScreen extends Screen {
 
         minecraft.textureManager.bindTexture(WARDROBE_ICONS);
 
+        blit(matrixStack, this.guiLeft - 52 + 27, this.guiTop - wardrobeHeight / 2 + 10, 28, 28, 120, 197, 28, 28, 256, 256);
+        blit(matrixStack, this.guiLeft - 52 + 27 + 6, this.guiTop - wardrobeHeight / 2 + 10 + 8, 12, 12, 1, 183, 12, 12, 256, 256);
+
         if (currentTab == WardrobeTab.DATABASE_WARDROBE)
         {
             blit(matrixStack, this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 74, 28, 28, 87, 168, 28, 28, 256, 256);
@@ -427,12 +439,12 @@ public class WardrobeScreen extends Screen {
 
         if (selectedSkin != null)
         {
-            blit(matrixStack, guiLeft + 50 - 10 - 50 + 4, guiTop - 75 + 4, 12, 12, 39, 170, 12, 12, 256, 256);
+            blit(matrixStack, guiLeft + 50 - 10 - 50 + 4 + PLAYER_TAB_OFFSET, guiTop - 75 + 4, 12, 12, 39, 170, 12, 12, 256, 256);
         }
 
         if (clearSkinButton.visible)
         {
-            blit(matrixStack, guiLeft + 50 - 10 + 50 + 5, guiTop - 75 + 5, 10, 10, 26, 170, 12, 12, 256, 256);
+            blit(matrixStack, guiLeft + 50 - 10 + 50 + 5 + PLAYER_TAB_OFFSET, guiTop - 75 + 5, 10, 10, 26, 170, 12, 12, 256, 256);
         }
 
         itemRenderer.renderItemIntoGUI(new ItemStack(Items.END_PORTAL_FRAME), this.guiLeft - wardrobeWidth - 45, this.guiTop - wardrobeHeight / 2 + 16);
@@ -444,6 +456,8 @@ public class WardrobeScreen extends Screen {
         blit(matrixStack, width / 2 - wardrobeWidth / 2 - 100, height / 2 - wardrobeHeight / 2, wardrobeWidth, wardrobeHeight, 1, 1, 147, 166, 256, 256);
         blit(matrixStack, this.guiLeft + 4 - 48, this.guiTop + 4 - 115 - 21, 12, 12, 1, 170, 12, 12, 256, 256);
         blit(matrixStack, this.guiLeft + 4 - 72, this.guiTop + 4 - 115 - 21, 12, 12, 13, 170, 12, 12, 256, 256);
+
+//        blit(matrixStack, this.guiLeft - 52 + 23, this.guiTop - wardrobeHeight / 2 + 10, 32, 28, 87, 197, 32, 28, 256, 256);
 
         if (currentTab == WardrobeTab.DATABASE_WARDROBE) {
             blit(matrixStack, this.guiLeft - wardrobeWidth - 53, this.guiTop - wardrobeHeight / 2 + 10, 32, 28, 116, 168, 32, 28, 256, 256);
@@ -485,6 +499,11 @@ public class WardrobeScreen extends Screen {
             renderTooltip(matrixStack, new TranslationTextComponent("wardrobe.screen.hover.personal_wardrobe_button"), mouseX, mouseY);
         }
 
+        if (isHovered(addFolderButton, mouseX, mouseY))
+        {
+            renderTooltip(matrixStack, new TranslationTextComponent("wardrobe.screen.hover.add_folder_button"), mouseX, mouseY);
+        }
+
         buttons.stream().filter(widget -> widget instanceof WardrobeSkinButton).forEach(widget -> {
             if (mouseX >= widget.x && mouseY >= widget.y && mouseX < widget.x + widget.getWidth() && mouseY < widget.y + widget.getHeight())
             {
@@ -517,7 +536,7 @@ public class WardrobeScreen extends Screen {
             }
         }
 
-        int playerX = width / 2 + 50;
+        int playerX = width / 2 + 50 + PLAYER_TAB_OFFSET;
         int playerY = height / 2 + 50;
         if (selectedSkin != null)
         {

@@ -46,6 +46,26 @@ public class MySQLConnection {
         }
     }
 
+    public CompletableFuture<Void> asyncBatch(String ...queries)
+    {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                connect();
+                connection.setAutoCommit(false);
+                Statement statement = connection.createStatement();
+                for (String query : queries) {
+                    statement.addBatch(query);
+                }
+                statement.executeBatch();
+                connection.commit();
+                connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+    }
+
     public CompletableFuture<Void> asyncUpdate(String query)
     {
         return CompletableFuture.supplyAsync(() -> {

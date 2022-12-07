@@ -19,6 +19,9 @@ public class Database {
     private static final Logger LOGGER = LogManager.getLogger();
     private MySQLConnection mySQL;
 
+    public static final String SKINS_TABLE = "w_skins";
+    public static final String FOLDERS_TABLE = "w_folders";
+
     public Database()
     {
         try {
@@ -30,13 +33,10 @@ public class Database {
 
     public void firstBoot()
     {
-        try {
-            mySQL.connect();
-            mySQL.query("SELECT * FROM skins_dev LIMIT 1");
-            mySQL.getConnection().close();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        mySQL.asyncBatch(
+                "CREATE TABLE IF NOT EXISTS " + SKINS_TABLE + " (uid int NOT NULL PRIMARY KEY, name varchar(255) NOT NULL, url varchar(2048) NOT NULL, folder int NOT NULL, slim bool NOT NULL, baby bool NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS " + FOLDERS_TABLE + " (uid int NOT NULL PRIMARY KEY, name varchar(255) NOT NULL, item_icon varchar(255) NOT NULL)"
+        );
     }
 
     private String getSortKey(WardrobePage.PageSort pageSort, boolean isAscending)
@@ -63,7 +63,7 @@ public class Database {
     {
         return mySQL.asyncUpdate(
                 String.format(
-                        "DELETE FROM skins_dev WHERE name='%s'",
+                        "DELETE FROM " + SKINS_TABLE + " WHERE name='%s'",
                         skinId
                 )
         );
@@ -71,7 +71,7 @@ public class Database {
 
     public CompletableFuture<List<SkinLocation>> fetchPage(String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
     {
-        return mySQL.asyncResult("SELECT * FROM skins_dev" + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + " LIMIT " + startingAt + "," + 16 + startingAt + ";").handleAsync((resultSet, throwable) -> {
+        return mySQL.asyncResult("SELECT * FROM " + SKINS_TABLE + "" + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + " LIMIT " + startingAt + "," + 16 + startingAt + ";").handleAsync((resultSet, throwable) -> {
             List<SkinLocation> skinLocations = new ArrayList<>();
             try {
                 while (resultSet.next())
@@ -92,7 +92,7 @@ public class Database {
 
     public CompletableFuture<Boolean> hasNextPage(String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
     {
-        return mySQL.asyncResult("SELECT * FROM skins_dev" + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + " LIMIT " + startingAt + "," + 16 + startingAt + ";").handleAsync((resultSet, throwable) -> {
+        return mySQL.asyncResult("SELECT * FROM " + SKINS_TABLE + "" + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + " LIMIT " + startingAt + "," + 16 + startingAt + ";").handleAsync((resultSet, throwable) -> {
             boolean hasNext = false;
             try {
                 hasNext = resultSet.next();
@@ -110,7 +110,7 @@ public class Database {
     {
         return mySQL.asyncUpdate(
                 String.format(
-                         "INSERT INTO skins_dev (name, url, slim, baby) VALUES ('%s', '%s', %s, %s)" +
+                         "INSERT INTO " + SKINS_TABLE + " (name, url, slim, baby) VALUES ('%s', '%s', %s, %s)" +
                                 "ON DUPLICATE KEY UPDATE url=VALUES(url), slim=VALUES(slim), baby=VALUES(baby);",
                         skinId, skinURL, isSlim, isBaby
                 )
@@ -121,7 +121,7 @@ public class Database {
     {
         return mySQL.asyncUpdate(
                 String.format(
-                        "UPDATE skins_dev SET name = '%s', url = '%s', slim = %s, baby = %s WHERE name = '%s';",
+                        "UPDATE " + SKINS_TABLE + " SET name = '%s', url = '%s', slim = %s, baby = %s WHERE name = '%s';",
                         skinId, skinURL, isSlim, isBaby, oldSkinId
                 )
         );
@@ -138,7 +138,7 @@ public class Database {
                 return CompletableFuture.completedFuture(cached.get().getValue());
             }
         }
-        return mySQL.asyncResult("SELECT * FROM skins_dev WHERE name='" + skinId + "' LIMIT 1").handleAsync((resultSet, throwable) -> {
+        return mySQL.asyncResult("SELECT * FROM " + SKINS_TABLE + " WHERE name='" + skinId + "' LIMIT 1").handleAsync((resultSet, throwable) -> {
             try
             {
                 if (resultSet.next())
