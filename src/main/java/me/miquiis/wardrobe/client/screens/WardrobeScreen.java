@@ -39,7 +39,9 @@ import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.*;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public class WardrobeScreen extends Screen {
@@ -231,8 +233,7 @@ public class WardrobeScreen extends Screen {
         }));
 
         this.addFolderButton = addButton(new DontRenderButton(this.guiLeft - 52 + 27, this.guiTop - wardrobeHeight / 2 + 10, 28, 28, new StringTextComponent("add_folder_button"), p_onPress_1_ -> {
-            System.out.println("Add Folder click");
-            PopUpScreen popUpScreen = new PopUpScreen(this, new FolderSettingsScreen(selectedSkin, currentTab));
+            PopUpScreen popUpScreen = new PopUpScreen(this, new FolderSettingsScreen(currentTab, false));
             minecraft.displayGuiScreen(popUpScreen);
         }));
 
@@ -505,7 +506,7 @@ public class WardrobeScreen extends Screen {
         }
 
         buttons.stream().filter(widget -> widget instanceof WardrobeSkinButton).forEach(widget -> {
-            if (mouseX >= widget.x && mouseY >= widget.y && mouseX < widget.x + widget.getWidth() && mouseY < widget.y + widget.getHeight())
+            if (isHovered(widget, mouseX, mouseY))
             {
                 if (!widget.active) return;
                 renderTooltip(matrixStack, widget.getMessage(), mouseX, mouseY);
@@ -549,7 +550,7 @@ public class WardrobeScreen extends Screen {
 
     private boolean isHovered(Widget widget, int mouseX, int mouseY)
     {
-        return widget.active && mouseX >= widget.x && mouseY >= widget.y && mouseX < widget.x + widget.getWidth() && mouseY < widget.y + widget.getHeight();
+        return widget.isFocused() && widget.active && mouseX >= widget.x && mouseY >= widget.y && mouseX < widget.x + widget.getWidth() && mouseY < widget.y + widget.getHeight();
     }
 
     public static void drawPlayerOnScreen(int posX, int posY, int scale, float mouseX, float mouseY, AbstractClientPlayerEntity livingEntity, SkinLocation skinLocation) {
