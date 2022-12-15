@@ -108,7 +108,7 @@ public class PopUpScreen extends Screen {
         if (backgroundScreen instanceof WardrobeScreen)
         {
             WardrobeScreen wardrobeScreen = (WardrobeScreen) backgroundScreen;
-            wardrobeScreen.refreshPage(true);
+            wardrobeScreen.refreshSection(false, true);
         }
         minecraft.displayGuiScreen(backgroundScreen);
     }

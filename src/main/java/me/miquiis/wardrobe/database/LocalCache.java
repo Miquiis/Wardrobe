@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class LocalCache<T> {
 
@@ -64,6 +65,11 @@ public class LocalCache<T> {
     public void decache(Predicate<Cached> decachePredicate)
     {
         cache.removeIf(decachePredicate);
+    }
+
+    public List<Cached> getCached(Predicate<Cached> predicate)
+    {
+        return cache.stream().filter(predicate).collect(Collectors.toList());
     }
 
     public Optional<Cached> getCache(Predicate<Cached> predicate)

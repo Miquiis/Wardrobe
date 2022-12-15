@@ -4,6 +4,11 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.common.WardrobeTab;
+import me.miquiis.wardrobe.common.utils.Payload;
+import me.miquiis.wardrobe.server.network.ModNetwork;
+import me.miquiis.wardrobe.server.network.messages.AddFolderToDatabasePacket;
+import me.miquiis.wardrobe.server.network.messages.DeleteFolderFromDatabasePacket;
+import me.miquiis.wardrobe.server.network.messages.ModifyFolderFromDatabasePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -32,10 +37,13 @@ public class FolderSettingsScreen extends Screen implements PopUpScreen.IPopUpSc
 
     private Button saveButton;
     private Button deleteButton;
+
+    private WardrobeTab currentTab;
     private boolean isEditing;
 
     public FolderSettingsScreen(WardrobeTab currentTab, boolean isEditing) {
         super(new StringTextComponent("Folder Settings"));
+        this.currentTab = currentTab;
         this.isEditing = isEditing;
     }
 
@@ -84,17 +92,35 @@ public class FolderSettingsScreen extends Screen implements PopUpScreen.IPopUpSc
         this.folderIconField.x -= this.folderIconField.getAdjustedWidth() - 37;
         this.folderIconField.y -= this.folderIconField.getHeight() / 2 + 40;
 
-        this.saveButton = addButton(new Button(this.guiLeft - 176 / 2, guiTop + 96 / 2, 60, 20, new StringTextComponent("Save"), p_onPress_1_ -> {
+        this.saveButton = addButton(new Button(this.guiLeft - 176 / 2, guiTop + 96 / 2, 60, 20, new StringTextComponent(isEditing ? "Save" : "Create"), p_onPress_1_ -> {
+            if (!isEditing)
+            {
+                if (currentTab == WardrobeTab.DATABASE_WARDROBE)
+                {
+                    ModNetwork.CHANNEL.sendToServer(new AddFolderToDatabasePacket(new Payload().putString("FolderName", folderNameField.getText()).putString("FolderIcon", folderIconField.getText()).getPayload()));
+                }
+            } else {
+//                if (currentTab == WardrobeTab.DATABASE_WARDROBE)
+//                {
+//                    ModNetwork.CHANNEL.sendToServer(new ModifyFolderFromDatabasePacket(new Payload().putString("FolderName", folderNameField.getText()).putString("FolderIcon", folderIconField.getText()).getPayload()));
+//                }
+            }
+
             popUpScreen.finish();
         }));
 
-        this.deleteButton = addButton(new Button(this.guiLeft + 176 / 2, guiTop + 96 / 2, 60, 20, new StringTextComponent("\u00A7cDelete"), p_onPress_1_ -> {
+        this.deleteButton = addButton(new Button(this.guiLeft + 176 / 2, guiTop + 96 / 2, 60, 20, new StringTextComponent((isEditing ? "\u00A7cDelete" : "Back")), p_onPress_1_ -> {
+            if (isEditing)
+            {
+                if (currentTab == WardrobeTab.DATABASE_WARDROBE)
+                {
+                    ModNetwork.CHANNEL.sendToServer(new DeleteFolderFromDatabasePacket(new Payload().putString("FolderName", folderNameField.getText()).getPayload()));
+                }
+            }
             popUpScreen.finish();
         }));
 
         this.deleteButton.x -= this.deleteButton.getWidth();
-
-        this.deleteButton.active = isEditing;
 
         this.children.add(folderNameField);
         this.children.add(folderIconField);

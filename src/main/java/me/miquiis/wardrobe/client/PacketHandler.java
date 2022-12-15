@@ -4,6 +4,7 @@ import me.miquiis.skinchangerapi.client.SkinChangerAPIClient;
 import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.client.screens.WardrobeScreen;
+import me.miquiis.wardrobe.common.WardrobeFolder;
 import me.miquiis.wardrobe.common.WardrobePage;
 import me.miquiis.wardrobe.common.WardrobeTab;
 import me.miquiis.wardrobe.common.cache.TextureCache;
@@ -11,6 +12,8 @@ import me.miquiis.wardrobe.common.utils.ImageUtils;
 import me.miquiis.wardrobe.server.network.ModNetwork;
 import me.miquiis.wardrobe.server.network.messages.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.ListNBT;
+import net.minecraftforge.common.util.Constants;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -59,6 +62,20 @@ public class PacketHandler {
             }
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void handleSendFoldersPacket(SendFoldersPacket msg) {
+        ListNBT listNBT = msg.getPayload().getList("Folders", Constants.NBT.TAG_COMPOUND);
+        listNBT.forEach(inbt -> {
+            WardrobeFolder wardrobeFolder = WardrobeFolder.read(inbt);
+            Wardrobe.getInstance().getClientWardrobeFolderCache().cache(wardrobeFolder, cached -> cached.getValue().equals(wardrobeFolder));
+        });
+
+        if (Minecraft.getInstance().currentScreen instanceof WardrobeScreen)
+        {
+            WardrobeScreen wardrobeScreen = (WardrobeScreen)Minecraft.getInstance().currentScreen;
+            wardrobeScreen.refreshSection(true, false);
         }
     }
 }

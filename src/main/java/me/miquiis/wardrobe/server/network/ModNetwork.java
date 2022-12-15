@@ -29,6 +29,11 @@ public class ModNetwork {
         CHANNEL.registerMessage(10, AddSkinToDatabasePacket.class, AddSkinToDatabasePacket::encodePacket, AddSkinToDatabasePacket::decodePacket, AddSkinToDatabasePacket::handlePacket);
         CHANNEL.registerMessage(11, RemoveSkinFromDatabasePacket.class, RemoveSkinFromDatabasePacket::encodePacket, RemoveSkinFromDatabasePacket::decodePacket, RemoveSkinFromDatabasePacket::handlePacket);
         CHANNEL.registerMessage(12, ModifySkinToDatabasePacket.class, ModifySkinToDatabasePacket::encodePacket, ModifySkinToDatabasePacket::decodePacket, ModifySkinToDatabasePacket::handlePacket);
+        CHANNEL.registerMessage(13, AddFolderToDatabasePacket.class, AddFolderToDatabasePacket::encodePacket, AddFolderToDatabasePacket::decodePacket, AddFolderToDatabasePacket::handlePacket);
+        CHANNEL.registerMessage(14, ModifySkinToDatabasePacket.class, ModifySkinToDatabasePacket::encodePacket, ModifySkinToDatabasePacket::decodePacket, ModifySkinToDatabasePacket::handlePacket);
+        CHANNEL.registerMessage(15, DeleteFolderFromDatabasePacket.class, DeleteFolderFromDatabasePacket::encodePacket, DeleteFolderFromDatabasePacket::decodePacket, DeleteFolderFromDatabasePacket::handlePacket);
+        CHANNEL.registerMessage(16, RequestFoldersPacket.class, RequestFoldersPacket::encodePacket, RequestFoldersPacket::decodePacket, RequestFoldersPacket::handlePacket);
+        CHANNEL.registerMessage(17, SendFoldersPacket.class, SendFoldersPacket::encodePacket, SendFoldersPacket::decodePacket, SendFoldersPacket::handlePacket);
     }
 
 }

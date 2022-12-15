@@ -7,8 +7,6 @@ import me.miquiis.wardrobe.server.network.ModNetwork;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.PacketDistributor;
-
-import javax.xml.crypto.Data;
 import java.util.function.Supplier;
 
 public class RequestPagePacket {

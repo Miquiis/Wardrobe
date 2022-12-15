@@ -2,7 +2,9 @@ package me.miquiis.wardrobe.database.server;
 
 import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
+import me.miquiis.wardrobe.common.WardrobeFolder;
 import me.miquiis.wardrobe.common.WardrobePage;
+import me.miquiis.wardrobe.common.WardrobeTab;
 import me.miquiis.wardrobe.database.LocalCache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,8 +36,8 @@ public class Database {
     public void firstBoot()
     {
         mySQL.asyncBatch(
-                "CREATE TABLE IF NOT EXISTS " + SKINS_TABLE + " (uid int NOT NULL PRIMARY KEY, name varchar(255) NOT NULL, url varchar(2048) NOT NULL, folder int NOT NULL, slim bool NOT NULL, baby bool NOT NULL)",
-                "CREATE TABLE IF NOT EXISTS " + FOLDERS_TABLE + " (uid int NOT NULL PRIMARY KEY, name varchar(255) NOT NULL, item_icon varchar(255) NOT NULL)"
+                "CREATE TABLE IF NOT EXISTS " + SKINS_TABLE + " (uid int NOT NULL PRIMARY KEY AUTO_INCREMENT, name varchar(255) NOT NULL, url varchar(2048) NOT NULL, folder int NOT NULL, slim bool NOT NULL, baby bool NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS " + FOLDERS_TABLE + " (uid int NOT NULL PRIMARY KEY AUTO_INCREMENT, name varchar(255) NOT NULL, item_icon varchar(255) NOT NULL)"
         );
     }
 
@@ -67,6 +69,59 @@ public class Database {
                         skinId
                 )
         );
+    }
+
+    public CompletableFuture<Void> createNewFolder(String folderName, String folderItem)
+    {
+        return mySQL.asyncUpdate(
+                String.format(
+                        "INSERT INTO " + FOLDERS_TABLE + " (name, item_icon) VALUES ('%s', '%s')",
+                        folderName, folderItem
+                )
+        );
+    }
+
+    public CompletableFuture<Void> updateExistingFolder(String oldFolderName, String newFolderName, String folderItem)
+    {
+        return mySQL.asyncUpdate(
+                String.format(
+                        "UPDATE " + FOLDERS_TABLE + " SET name = '%s', item_icon = '%s' WHERE name = '%s';",
+                        newFolderName, folderItem, oldFolderName
+                )
+        );
+    }
+
+    public CompletableFuture<Void> deleteFolder(String folderName)
+    {
+        return mySQL.asyncUpdate(
+                String.format(
+                        "DELETE FROM " + FOLDERS_TABLE + " WHERE name='%s'",
+                        folderName
+                )
+        );
+    }
+
+    public CompletableFuture<List<WardrobeFolder>> fetchFolders(int startingAt)
+    {
+        return mySQL.asyncResult("SELECT * FROM " + FOLDERS_TABLE + " LIMIT " + startingAt + "," + 6 + ";").handleAsync((resultSet, throwable) -> {
+            List<WardrobeFolder> wardrobeFolders = new ArrayList<>();
+            try {
+                int folderCount = 0;
+                while (resultSet.next())
+                {
+                    wardrobeFolders.add(new WardrobeFolder(resultSet.getInt("uid"), resultSet.getString("name"), resultSet.getString("item_icon"), WardrobeTab.DATABASE_WARDROBE, 1 + (folderCount / 5)));
+                    folderCount++;
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error trying to get ResultSet.");
+            }
+
+            try {
+                resultSet.close();
+            } catch (SQLException ignored) {}
+
+            return wardrobeFolders;
+        });
     }
 
     public CompletableFuture<List<SkinLocation>> fetchPage(String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
