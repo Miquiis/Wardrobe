@@ -4,7 +4,9 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.client.PersonalWardrobe;
+import me.miquiis.wardrobe.common.WardrobeFolder;
 import me.miquiis.wardrobe.common.WardrobeTab;
+import me.miquiis.wardrobe.common.utils.Payload;
 import me.miquiis.wardrobe.database.server.Database;
 import me.miquiis.wardrobe.server.network.ModNetwork;
 import me.miquiis.wardrobe.server.network.messages.AddSkinToDatabasePacket;
@@ -28,6 +30,7 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
     private PopUpScreen popUpScreen;
     private SkinLocation skinLocation;
     private WardrobeTab currentTab;
+    private WardrobeFolder currentFolder;
 
     private int guiLeft;
     private int guiTop;
@@ -40,10 +43,11 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
     private Button saveButton;
     private Button deleteButton;
 
-    public SkinSettingsScreen(SkinLocation skinLocation, WardrobeTab currentTab) {
+    public SkinSettingsScreen(SkinLocation skinLocation, WardrobeTab currentTab, WardrobeFolder currentFolder) {
         super(new StringTextComponent("Skin Settings"));
         this.skinLocation = skinLocation;
         this.currentTab = currentTab;
+        this.currentFolder = currentFolder;
     }
 
     @Override
@@ -117,7 +121,7 @@ public class SkinSettingsScreen extends Screen implements PopUpScreen.IPopUpScre
             } else if (currentTab == WardrobeTab.DATABASE_WARDROBE)
             {
                 SkinLocation newSkinLocation = new SkinLocation(skinNameField.getText(), skinUrlField.getText(), isSlimBox.isChecked(), isBabyBox.isChecked());
-                ModNetwork.CHANNEL.sendToServer(new ModifySkinToDatabasePacket(skinLocation, newSkinLocation));
+                ModNetwork.CHANNEL.sendToServer(new ModifySkinToDatabasePacket(new Payload().put("PrevSkinLocation", SkinLocation.SKIN_LOCATION.write(skinLocation)).put("SkinLocation", SkinLocation.SKIN_LOCATION.write(newSkinLocation)).putString("FolderName", currentFolder.getWardrobeFolderName()).getPayload()));
             }
             popUpScreen.finish();
         }));

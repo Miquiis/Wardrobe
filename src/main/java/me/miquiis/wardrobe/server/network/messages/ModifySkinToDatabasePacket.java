@@ -2,6 +2,7 @@ package me.miquiis.wardrobe.server.network.messages;
 
 import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.database.server.Database;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -9,27 +10,37 @@ import java.util.function.Supplier;
 
 public class ModifySkinToDatabasePacket {
 
-   private final SkinLocation prevSkinLocation;
-   private final SkinLocation skinLocation;
+   private final CompoundNBT payload;
 
-   public ModifySkinToDatabasePacket(SkinLocation prevSkinLocation, SkinLocation skinLocation) {
-      this.prevSkinLocation = prevSkinLocation;
-      this.skinLocation = skinLocation;
+   /**
+    * Payload Structure:
+    * {@code
+    *     {
+    *         "PrevSkinLocation": INBT<SkinLocation>,
+    *         "SkinLocation": INBT<SkinLocation>,
+    *         "FolderName": String,
+    *     }
+    * }
+    */
+   public ModifySkinToDatabasePacket(CompoundNBT payload) {
+      this.payload = payload;
    }
 
    public static ModifySkinToDatabasePacket decodePacket(PacketBuffer buf) {
-      return new ModifySkinToDatabasePacket(SkinLocation.SKIN_LOCATION.read(buf), SkinLocation.SKIN_LOCATION.read(buf));
+      return new ModifySkinToDatabasePacket(buf.readCompoundTag());
    }
 
    public static void encodePacket(ModifySkinToDatabasePacket packet, PacketBuffer buf) {
-      SkinLocation.SKIN_LOCATION.write(buf, packet.prevSkinLocation);
-      SkinLocation.SKIN_LOCATION.write(buf, packet.skinLocation);
+      buf.writeCompoundTag(packet.payload);
    }
 
    /**
     * Passes this Packet on to the NetHandler for processing.
     */
    public static void handlePacket(final ModifySkinToDatabasePacket msg, Supplier<NetworkEvent.Context> ctx) {
-      new Database().updateSkinURL(msg.prevSkinLocation.getSkinId(), msg.skinLocation.getSkinId(), msg.skinLocation.getSkinURL(), msg.skinLocation.isSlim(), msg.skinLocation.isBaby());
+      SkinLocation prevSkinLocation = SkinLocation.SKIN_LOCATION.read(msg.payload.get("PrevSkinLocation"));
+      SkinLocation skinLocation = SkinLocation.SKIN_LOCATION.read(msg.payload.get("SkinLocation"));
+      String folderName = msg.payload.getString("FolderName");
+      new Database().updateExistingSkin(prevSkinLocation.getSkinId(), skinLocation.getSkinId(), skinLocation.getSkinURL(), folderName, skinLocation.isSlim(), skinLocation.isBaby());
    }
 }

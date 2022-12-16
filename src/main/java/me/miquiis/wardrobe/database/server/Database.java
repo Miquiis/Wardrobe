@@ -36,8 +36,9 @@ public class Database {
     public void firstBoot()
     {
         mySQL.asyncBatch(
-                "CREATE TABLE IF NOT EXISTS " + SKINS_TABLE + " (uid int NOT NULL PRIMARY KEY AUTO_INCREMENT, name varchar(255) NOT NULL, url varchar(2048) NOT NULL, folder int NOT NULL, slim bool NOT NULL, baby bool NOT NULL)",
-                "CREATE TABLE IF NOT EXISTS " + FOLDERS_TABLE + " (uid int NOT NULL PRIMARY KEY AUTO_INCREMENT, name varchar(255) NOT NULL, item_icon varchar(255) NOT NULL)"
+                "CREATE TABLE IF NOT EXISTS " + SKINS_TABLE + " (uid int NOT NULL PRIMARY KEY AUTO_INCREMENT, name varchar(255) NOT NULL UNIQUE, url varchar(2048) NOT NULL, folder varchar(255) NOT NULL, slim bool NOT NULL, baby bool NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS " + FOLDERS_TABLE + " (uid int NOT NULL PRIMARY KEY AUTO_INCREMENT, name varchar(255) NOT NULL UNIQUE, item_icon varchar(255) NOT NULL)",
+                "INSERT INTO " + FOLDERS_TABLE + " (name, item_icon) VALUES ('Main Folder', 'chest') ON DUPLICATE KEY UPDATE name=name"
         );
     }
 
@@ -109,7 +110,7 @@ public class Database {
                 int folderCount = 0;
                 while (resultSet.next())
                 {
-                    wardrobeFolders.add(new WardrobeFolder(resultSet.getInt("uid"), resultSet.getString("name"), resultSet.getString("item_icon"), WardrobeTab.DATABASE_WARDROBE, 1 + (folderCount / 5)));
+                    wardrobeFolders.add(new WardrobeFolder(resultSet.getString("name"), resultSet.getString("item_icon"), WardrobeTab.DATABASE_WARDROBE, 1 + (startingAt / 4) + folderCount / 5));
                     folderCount++;
                 }
             } catch (Exception e) {
@@ -161,23 +162,23 @@ public class Database {
         });
     }
 
-    public CompletableFuture<Void> saveSkinURL(String skinId, String skinURL, boolean isSlim, boolean isBaby)
+    public CompletableFuture<Void> createNewSkin(String skinId, String skinURL, String folderName, boolean isSlim, boolean isBaby)
     {
         return mySQL.asyncUpdate(
                 String.format(
-                         "INSERT INTO " + SKINS_TABLE + " (name, url, slim, baby) VALUES ('%s', '%s', %s, %s)" +
-                                "ON DUPLICATE KEY UPDATE url=VALUES(url), slim=VALUES(slim), baby=VALUES(baby);",
-                        skinId, skinURL, isSlim, isBaby
+                         "INSERT INTO " + SKINS_TABLE + " (name, url, folder, slim, baby) VALUES ('%s', '%s', %s, %s)" +
+                                "ON DUPLICATE KEY UPDATE url=VALUES(url), folder=VALUES(folder), slim=VALUES(slim), baby=VALUES(baby);",
+                        skinId, skinURL, folderName, isSlim, isBaby
                 )
         );
     }
 
-    public CompletableFuture<Void> updateSkinURL(String oldSkinId, String skinId, String skinURL, boolean isSlim, boolean isBaby)
+    public CompletableFuture<Void> updateExistingSkin(String oldSkinId, String skinId, String skinURL, String folderName, boolean isSlim, boolean isBaby)
     {
         return mySQL.asyncUpdate(
                 String.format(
-                        "UPDATE " + SKINS_TABLE + " SET name = '%s', url = '%s', slim = %s, baby = %s WHERE name = '%s';",
-                        skinId, skinURL, isSlim, isBaby, oldSkinId
+                        "UPDATE " + SKINS_TABLE + " SET name = '%s', url = '%s', folder = '%s', slim = %s, baby = %s WHERE name = '%s';",
+                        skinId, skinURL, folderName, isSlim, isBaby, oldSkinId
                 )
         );
     }

@@ -6,7 +6,9 @@ import me.miquiis.skinchangerapi.client.SkinChangerAPIClient;
 import me.miquiis.skinchangerapi.common.SkinLocation;
 import me.miquiis.wardrobe.Wardrobe;
 import me.miquiis.wardrobe.client.PersonalWardrobe;
+import me.miquiis.wardrobe.common.WardrobeFolder;
 import me.miquiis.wardrobe.common.WardrobeTab;
+import me.miquiis.wardrobe.common.utils.Payload;
 import me.miquiis.wardrobe.server.network.ModNetwork;
 import me.miquiis.wardrobe.server.network.messages.AddSkinToDatabasePacket;
 import net.minecraft.client.Minecraft;
@@ -28,6 +30,7 @@ public class AddSkinScreen extends Screen implements PopUpScreen.IPopUpScreen {
 
     private PopUpScreen popUpScreen;
     private WardrobeTab currentTab;
+    private WardrobeFolder currentFolder;
     private SkinLocation tempSkinLocation;
 
     private int guiLeft;
@@ -43,9 +46,10 @@ public class AddSkinScreen extends Screen implements PopUpScreen.IPopUpScreen {
 
     private String lastSearchField;
 
-    public AddSkinScreen(WardrobeTab currentTab) {
+    public AddSkinScreen(WardrobeTab currentTab, WardrobeFolder currentFolder) {
         super(new StringTextComponent("Add Skin"));
         this.currentTab = currentTab;
+        this.currentFolder = currentFolder;
     }
 
     @Override
@@ -133,7 +137,7 @@ public class AddSkinScreen extends Screen implements PopUpScreen.IPopUpScreen {
 
         this.saveButton = addButton(new Button(this.guiLeft - 176 / 2, guiTop + 222 / 2, 60, 20, new StringTextComponent("Add"), p_onPress_1_ -> {
             SkinLocation skinLocation = new SkinLocation(skinNameField.getText(), skinUrlField.getText(), isSlimBox.isChecked(), isBabyBox.isChecked());
-            ModNetwork.CHANNEL.sendToServer(new AddSkinToDatabasePacket(skinLocation));
+            ModNetwork.CHANNEL.sendToServer(new AddSkinToDatabasePacket(new Payload().put("SkinLocation", SkinLocation.SKIN_LOCATION.write(skinLocation)).putString("FolderName", currentFolder.getWardrobeFolderName()).getPayload()));
             popUpScreen.finish();
         }));
 

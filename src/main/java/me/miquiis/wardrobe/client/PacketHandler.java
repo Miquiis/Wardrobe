@@ -66,6 +66,8 @@ public class PacketHandler {
     }
 
     public static void handleSendFoldersPacket(SendFoldersPacket msg) {
+        Wardrobe.getInstance().getClientWardrobeFolderCache().decache(cached -> cached.getValue().getWardrobeFolderPage() == msg.getPayload().getInt("FolderPage"));
+
         ListNBT listNBT = msg.getPayload().getList("Folders", Constants.NBT.TAG_COMPOUND);
         listNBT.forEach(inbt -> {
             WardrobeFolder wardrobeFolder = WardrobeFolder.read(inbt);
@@ -75,7 +77,7 @@ public class PacketHandler {
         if (Minecraft.getInstance().currentScreen instanceof WardrobeScreen)
         {
             WardrobeScreen wardrobeScreen = (WardrobeScreen)Minecraft.getInstance().currentScreen;
-            wardrobeScreen.refreshSection(true, false);
+            wardrobeScreen.refreshSection(true, false, false);
         }
     }
 }
