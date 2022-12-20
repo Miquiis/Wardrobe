@@ -21,9 +21,9 @@ import java.util.Arrays;
 public class PacketHandler {
 
     public static void handleSendPagePacket(SendPagePacket msg) {
-        Wardrobe.getInstance().getClientWardrobePageCache().cache(new WardrobePage(msg.getSearchBar(),
+        Wardrobe.getInstance().getClientWardrobePageCache().cache(new WardrobePage(msg.getFolderName(), msg.getSearchBar(),
                 msg.getPageSort(), msg.isAscending(), msg.getPageContents(), msg.getRequestPagePacket() == RequestPagePacket.RequestPagePacketType.DATABASE ? WardrobeTab.DATABASE_WARDROBE : WardrobeTab.SERVER_WARDROBE, msg.getPage()
-        ), cached -> cached.getValue().getSearchBar().equals(msg.getSearchBar()) && cached.getValue().isAscending() == msg.isAscending() && cached.getValue().getPageSorted() == msg.getPageSort() && cached.getValue().getPage() == msg.getPage());
+        ), cached -> cached.getValue().getWardrobeFolder().equals(msg.getFolderName()) && cached.getValue().getSearchBar().equals(msg.getSearchBar()) && cached.getValue().isAscending() == msg.isAscending() && cached.getValue().getPageSorted() == msg.getPageSort() && cached.getValue().getPage() == msg.getPage());
 
         if (Minecraft.getInstance().currentScreen instanceof WardrobeScreen)
         {

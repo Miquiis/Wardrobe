@@ -56,12 +56,14 @@ public class WardrobeScreen extends Screen {
 
     public class WardrobeFolderButton extends Button {
 
+        private WardrobeScreen screenRef;
         private WardrobeFolder folderReference;
         private Item folderItem;
         private boolean pressed;
 
-        public WardrobeFolderButton(int x, int y, int width, int height, ITextComponent title, WardrobeFolder folderReference, IPressable pressedAction) {
+        public WardrobeFolderButton(int x, int y, int width, int height, ITextComponent title, WardrobeScreen screenRef, WardrobeFolder folderReference, IPressable pressedAction) {
             super(x, y, width, height, title, pressedAction);
+            this.screenRef = screenRef;
             this.folderReference = folderReference;
             this.folderItem = ForgeRegistries.ITEMS.getValue(new ResourceLocation(folderReference.getWardrobeIconResource()));
         }
@@ -87,6 +89,11 @@ public class WardrobeScreen extends Screen {
         }
 
         @Override
+        public boolean isHovered() {
+            return super.isHovered() && !screenRef.hasPopUpScreenOpen && visible && active;
+        }
+
+        @Override
         public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
             super.render(matrixStack, mouseX, mouseY, partialTicks);
         }
@@ -107,10 +114,12 @@ public class WardrobeScreen extends Screen {
 
     public class WardrobePageButton extends Button {
 
+        private WardrobeScreen screenRef;
         private boolean nextPage;
 
-        public WardrobePageButton(int x, int y, int width, int height, ITextComponent title, boolean nextPage, IPressable pressedAction) {
+        public WardrobePageButton(int x, int y, int width, int height, ITextComponent title, WardrobeScreen screenRef, boolean nextPage, IPressable pressedAction) {
             super(x, y, width, height, title, pressedAction);
+            this.screenRef = screenRef;
             this.nextPage = nextPage;
         }
 
@@ -132,6 +141,12 @@ public class WardrobeScreen extends Screen {
         public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
             super.render(matrixStack, mouseX, mouseY, partialTicks);
         }
+
+        @Override
+        public boolean isHovered() {
+            return super.isHovered() && !screenRef.hasPopUpScreenOpen && visible && active;
+        }
+
 
         @Override
         public void renderToolTip(MatrixStack matrixStack, int mouseX, int mouseY) {
@@ -342,12 +357,12 @@ public class WardrobeScreen extends Screen {
             hasPopUpScreenOpen = true;
         }));
 
-        this.nextFolderPage = addButton(new WardrobePageButton(this.guiLeft - 52 + 31, this.guiTop - wardrobeHeight / 2 + 10 + 200, 17, 11, new StringTextComponent("Next Page"), true, p_onPress_1_ -> {
+        this.nextFolderPage = addButton(new WardrobePageButton(this.guiLeft - 52 + 31, this.guiTop - wardrobeHeight / 2 + 10 + 200, 17, 11, new StringTextComponent("Next Page"), this, true, p_onPress_1_ -> {
             currentFolderPage++;
             refreshSection(false,true, false);
         }));
 
-        this.backFolderPage = addButton(new WardrobePageButton(this.guiLeft - 52 + 31, this.guiTop - wardrobeHeight / 2 + 10 + 5, 17, 11, new StringTextComponent("Previous Page"), false, p_onPress_1_ -> {
+        this.backFolderPage = addButton(new WardrobePageButton(this.guiLeft - 52 + 31, this.guiTop - wardrobeHeight / 2 + 10 + 5, 17, 11, new StringTextComponent("Previous Page"), this, false, p_onPress_1_ -> {
             currentFolderPage--;
             refreshSection(false,true, false);
         }));
@@ -386,10 +401,10 @@ public class WardrobeScreen extends Screen {
         {
             return;
         }
-        if (forceRefresh)
-        {
-            currentFolder = WardrobeFolder.MAIN_FOLDER;
-        }
+//        if (forceRefresh)
+//        {
+//            currentFolder = WardrobeFolder.MAIN_FOLDER;
+//        }
         resetFoldersButtons();
         List<LocalCache<WardrobeFolder>.Cached> cachedWardrobeFolders = Wardrobe.getInstance().getClientWardrobeFolderCache().getCached(cached -> cached.getValue().getWardrobeTab() == currentTab && cached.getValue().getWardrobeFolderPage() == currentFolderPage);
         List<LocalCache<WardrobeFolder>.Cached> cachedNextWardrobeFolders = Wardrobe.getInstance().getClientWardrobeFolderCache().getCached(cached -> cached.getValue().getWardrobeTab() == currentTab && cached.getValue().getWardrobeFolderPage() == currentFolderPage + 1);
@@ -399,8 +414,9 @@ public class WardrobeScreen extends Screen {
             int folderIndex = 1;
             for (LocalCache<WardrobeFolder>.Cached cachedWardrobeFolder : cachedWardrobeFolders) {
                 WardrobeFolder folder = cachedWardrobeFolder.getValue();
-                addButton(new WardrobeFolderButton(this.guiLeft - 52 + 27, this.guiTop - wardrobeHeight / 2 + 10 + (folderIndex * 32), 28, 28, new StringTextComponent(folder.getWardrobeFolderName()), folder, p_onPress_1_ -> {
+                addButton(new WardrobeFolderButton(this.guiLeft - 52 + 27, this.guiTop - wardrobeHeight / 2 + 10 + (folderIndex * 32), 28, 28, new StringTextComponent(folder.getWardrobeFolderName()), this, folder, p_onPress_1_ -> {
                     currentFolder = folder;
+                    refreshPage(true);
                 }));
                 folderIndex++;
             }
@@ -437,7 +453,7 @@ public class WardrobeScreen extends Screen {
             if (currentTab == WardrobeTab.PERSONAL_WARDROBE)
             {
                 PersonalWardrobe.refreshWardrobe();
-                Wardrobe.getInstance().getClientWardrobePageCache().cache(new WardrobePage(searchField.getText(),
+                Wardrobe.getInstance().getClientWardrobePageCache().cache(new WardrobePage(currentFolder.getWardrobeFolderName(), searchField.getText(),
                         pageSort, isAscending, PersonalWardrobe.getPersonalWardrobeFrom((currentPage - 1) * 16, searchField.getText(), pageSort, isAscending), WardrobeTab.PERSONAL_WARDROBE, currentPage
                 ), cached -> cached.getValue().getSearchBar().equals(searchField.getText()) && cached.getValue().isAscending() == isAscending && cached.getValue().getPageSorted() == pageSort && cached.getValue().getPage() == currentPage && currentTab == cached.getValue().getWardrobeTab());
                 hasNextPage = PersonalWardrobe.hasNextPage((currentPage) * 16, searchField.getText(), pageSort, isAscending);
@@ -445,12 +461,14 @@ public class WardrobeScreen extends Screen {
                 refreshPage(false);
             } else if (currentTab == WardrobeTab.DATABASE_WARDROBE)
             {
-                ModNetwork.CHANNEL.sendToServer(new RequestPagePacket(searchField.getText(), pageSort, isAscending, currentPage, (currentPage - 1) * 16, RequestPagePacket.RequestPagePacketType.DATABASE));
+                Payload payload = new Payload().putString("Folder", currentFolder.getWardrobeFolderName()).putString("SearchField", searchField.getText()).putInt("PageSort", pageSort.ordinal()).putBoolean("IsAscending", isAscending).putInt("Page", currentPage).putInt("StartsAt", (currentPage - 1) * 16).putInt("RequestPageType", RequestPagePacket.RequestPagePacketType.DATABASE.ordinal());
+                ModNetwork.CHANNEL.sendToServer(new RequestPagePacket(payload.getPayload()));
                 hasNextPage = false;
                 isLoading = true;
             }  else if (currentTab == WardrobeTab.SERVER_WARDROBE)
             {
-                ModNetwork.CHANNEL.sendToServer(new RequestPagePacket(searchField.getText(), pageSort, isAscending, currentPage, 1, RequestPagePacket.RequestPagePacketType.SERVER));
+                Payload payload = new Payload().putString("Folder", currentFolder.getWardrobeFolderName()).putString("SearchField", searchField.getText()).putInt("PageSort", pageSort.ordinal()).putBoolean("IsAscending", isAscending).putInt("Page", currentPage).putInt("StartsAt", 1).putInt("RequestPageType", RequestPagePacket.RequestPagePacketType.SERVER.ordinal());
+                ModNetwork.CHANNEL.sendToServer(new RequestPagePacket(payload.getPayload()));
                 hasNextPage = false;
                 isLoading = true;
             }

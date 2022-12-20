@@ -125,9 +125,9 @@ public class Database {
         });
     }
 
-    public CompletableFuture<List<SkinLocation>> fetchPage(String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
+    public CompletableFuture<List<SkinLocation>> fetchPage(String folderName, String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
     {
-        return mySQL.asyncResult("SELECT * FROM " + SKINS_TABLE + "" + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + " LIMIT " + startingAt + "," + 16 + startingAt + ";").handleAsync((resultSet, throwable) -> {
+        return mySQL.asyncResult("SELECT * FROM " + SKINS_TABLE + " WHERE folder = '" + folderName + "'" + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + " LIMIT " + startingAt + "," + 16 + startingAt + ";").handleAsync((resultSet, throwable) -> {
             List<SkinLocation> skinLocations = new ArrayList<>();
             try {
                 while (resultSet.next())
@@ -146,9 +146,9 @@ public class Database {
         });
     }
 
-    public CompletableFuture<Boolean> hasNextPage(String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
+    public CompletableFuture<Boolean> hasNextPage(String folderName, String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int startingAt)
     {
-        return mySQL.asyncResult("SELECT * FROM " + SKINS_TABLE + "" + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + " LIMIT " + startingAt + "," + 16 + startingAt + ";").handleAsync((resultSet, throwable) -> {
+        return mySQL.asyncResult("SELECT * FROM " + SKINS_TABLE + " WHERE folder = '" + folderName + "'" + (!searchBar.isEmpty() ? " AND name LIKE '%" + searchBar + "%'" : "") + " ORDER BY " + getSortKey(pageSort, isAscending) + " LIMIT " + startingAt + "," + 16 + startingAt + ";").handleAsync((resultSet, throwable) -> {
             boolean hasNext = false;
             try {
                 hasNext = resultSet.next();
@@ -166,7 +166,7 @@ public class Database {
     {
         return mySQL.asyncUpdate(
                 String.format(
-                         "INSERT INTO " + SKINS_TABLE + " (name, url, folder, slim, baby) VALUES ('%s', '%s', %s, %s)" +
+                         "INSERT INTO " + SKINS_TABLE + " (name, url, folder, slim, baby) VALUES ('%s', '%s', '%s', %s, %s)" +
                                 "ON DUPLICATE KEY UPDATE url=VALUES(url), folder=VALUES(folder), slim=VALUES(slim), baby=VALUES(baby);",
                         skinId, skinURL, folderName, isSlim, isBaby
                 )

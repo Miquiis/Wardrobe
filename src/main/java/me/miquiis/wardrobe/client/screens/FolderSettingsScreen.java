@@ -128,7 +128,6 @@ public class FolderSettingsScreen extends Screen implements PopUpScreen.IPopUpSc
 
     @Override
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
 
         minecraft.textureManager.bindTexture(WARDROBE_SETTINGS);

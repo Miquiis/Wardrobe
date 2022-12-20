@@ -15,72 +15,63 @@ import java.util.function.Supplier;
 
 public class SendPagePacket {
 
-   private List<SkinLocation> pageContents;
-   private String searchBar;
-   private WardrobePage.PageSort pageSort;
-   private boolean isAscending;
-   private int page;
-   private boolean hasNextPage;
-   private RequestPagePacket.RequestPagePacketType requestPagePacket;
+   private CompoundNBT payload;
 
-   public SendPagePacket(List<SkinLocation> pageContents, String searchBar, WardrobePage.PageSort pageSort, boolean isAscending, int page, boolean hasNextPage, RequestPagePacket.RequestPagePacketType requestPagePacket) {
-      this.pageContents = pageContents;
-      this.searchBar = searchBar;
-      this.pageSort = pageSort;
-      this.isAscending = isAscending;
-      this.page = page;
-      this.hasNextPage = hasNextPage;
-      this.requestPagePacket = requestPagePacket;
+   public SendPagePacket(CompoundNBT payload)
+   {
+      this.payload = payload;
    }
 
    public static void encodePacket(SendPagePacket packet, PacketBuffer buf) {
-      CompoundNBT compoundNBT = new CompoundNBT();
-      ListNBT pageContents = new ListNBT();
-      packet.pageContents.forEach(skinLocation -> {
-         pageContents.add(SkinLocation.SKIN_LOCATION.write(skinLocation));
-      });
-      compoundNBT.put("PageContents", pageContents);
-      buf.writeCompoundTag(compoundNBT).writeString(packet.searchBar).writeEnumValue(packet.pageSort).writeBoolean(packet.isAscending).writeInt(packet.page).writeBoolean(packet.hasNextPage);
-      buf.writeEnumValue(packet.requestPagePacket);
+      buf.writeCompoundTag(packet.payload);
    }
 
    public static SendPagePacket decodePacket(PacketBuffer buf) {
-      CompoundNBT compoundNBT = buf.readCompoundTag();
-      ListNBT listNBT = compoundNBT.getList("PageContents", Constants.NBT.TAG_COMPOUND);
-      List<SkinLocation> skinLocations = new ArrayList<>();
-      listNBT.forEach(inbt -> {
-         skinLocations.add(SkinLocation.SKIN_LOCATION.read(inbt));
-      });
-      return new SendPagePacket(skinLocations, buf.readString(), buf.readEnumValue(WardrobePage.PageSort.class), buf.readBoolean(), buf.readInt(), buf.readBoolean(), buf.readEnumValue(RequestPagePacket.RequestPagePacketType.class));
+      return new SendPagePacket(buf.readCompoundTag());
    }
 
    public static void handlePacket(final SendPagePacket msg, Supplier<NetworkEvent.Context> ctx) {
       PacketHandler.handleSendPagePacket(msg);
    }
 
-   public String getSearchBar() {
-      return searchBar;
-   }
-
-   public int getPage() {
-      return page;
-   }
-
    public List<SkinLocation> getPageContents() {
-      return pageContents;
+      List<SkinLocation> skinLocations = new ArrayList<>();
+      ListNBT listNBT = payload.getList("SkinLocations", Constants.NBT.TAG_COMPOUND);
+      listNBT.forEach(inbt -> {
+         skinLocations.add(SkinLocation.SKIN_LOCATION.read(inbt));
+      });
+      return skinLocations;
+   }
+
+   public String getFolderName() {
+      return payload.getString("Folder");
+   }
+
+   public String getSearchBar() {
+      return payload.getString("SearchBar");
+   }
+
+   public RequestPagePacket.RequestPagePacketType getRequestPagePacket() {
+      return RequestPagePacket.RequestPagePacketType.values()[payload.getInt("RequestPageType")];
    }
 
    public WardrobePage.PageSort getPageSort() {
-      return pageSort;
+      return WardrobePage.PageSort.values()[payload.getInt("PageSort")];
+   }
+
+   public int getPage() {
+      return payload.getInt("Page");
+   }
+
+   public int getStartsAt() {
+      return payload.getInt("StartsAt");
+   }
+
+   public boolean hasNextPage() {
+      return payload.getBoolean("HasNextPage");
    }
 
    public boolean isAscending() {
-      return isAscending;
-   }
-
-   public boolean hasNextPage() { return hasNextPage; }
-
-   public RequestPagePacket.RequestPagePacketType getRequestPagePacket() {
-      return requestPagePacket;
+      return payload.getBoolean("IsAscending");
    }
 }
