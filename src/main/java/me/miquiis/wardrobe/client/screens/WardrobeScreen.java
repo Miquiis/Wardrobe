@@ -243,6 +243,7 @@ public class WardrobeScreen extends Screen {
     private Button backFolderPage;
     private Button moveToFolder;
     private Button bulkDelete;
+    private Button editFolder;
 
     private boolean canRefresh = true;
     private boolean isLoading = true;
@@ -317,6 +318,7 @@ public class WardrobeScreen extends Screen {
             selectedSkin = null;
             currentTab = WardrobeTab.DATABASE_WARDROBE;
             currentPage = 1;
+            currentFolderPage = 1;
             hasNextPage = false;
             refreshSection(false, true);
         }));
@@ -325,6 +327,7 @@ public class WardrobeScreen extends Screen {
             selectedSkin = null;
             currentTab = WardrobeTab.SERVER_WARDROBE;
             currentPage = 1;
+            currentFolderPage = 1;
             hasNextPage = false;
             refreshSection(false,true);
         }));
@@ -333,6 +336,7 @@ public class WardrobeScreen extends Screen {
             selectedSkin = null;
             currentTab = WardrobeTab.PERSONAL_WARDROBE;
             currentPage = 1;
+            currentFolderPage = 1;
             hasNextPage = false;
             refreshSection(false, true);
         }));
@@ -386,7 +390,7 @@ public class WardrobeScreen extends Screen {
         }));
 
         this.addFolderButton = addButton(new DontRenderButton(this.guiLeft - 52 + 27, this.guiTop - wardrobeHeight / 2 + 10, 28, 28, new StringTextComponent("add_folder_button"), p_onPress_1_ -> {
-            PopUpScreen popUpScreen = new PopUpScreen(this, new FolderSettingsScreen(currentTab, false));
+            PopUpScreen popUpScreen = new PopUpScreen(this, new FolderSettingsScreen(null, currentTab, false));
             minecraft.displayGuiScreen(popUpScreen);
             hasPopUpScreenOpen = true;
         }));
@@ -414,6 +418,12 @@ public class WardrobeScreen extends Screen {
 
             ModNetwork.CHANNEL.sendToServer(new RemoveSkinsFromDatabasePacket(new Payload().putList("SkinLocations", listNBT).getPayload()));
             refreshSection(false, true);
+        }));
+
+        this.editFolder = addButton(new Button(this.guiLeft - 60 - 40, guiTop + wardrobeHeight / 2 + 2, 70, 20, new StringTextComponent("Edit Folder"), p_onPress_1_ -> {
+            PopUpScreen popUpScreen = new PopUpScreen(this, new FolderSettingsScreen(currentFolder, currentTab, true));
+            minecraft.displayGuiScreen(popUpScreen);
+            hasPopUpScreenOpen = true;
         }));
 
         this.moveToFolder = addButton(new Button(this.guiLeft - wardrobeWidth - 50 + 30, guiTop + wardrobeHeight / 2 + 2, 60, 20, new StringTextComponent("Move To"), p_onPress_1_ -> {
@@ -448,6 +458,7 @@ public class WardrobeScreen extends Screen {
         this.addSkinButton.visible = false;
         this.bulkDelete.visible = false;
         this.moveToFolder.visible = false;
+        this.editFolder.visible = false;
 
         if (isFirstLoad)
         {
@@ -467,8 +478,12 @@ public class WardrobeScreen extends Screen {
         {
             return;
         }
+        if (forceRefresh)
+        {
+            Wardrobe.getInstance().getClientWardrobeFolderCache().clearCache();
+        }
         resetFoldersButtons();
-        selectedSkins.clear();
+        if (pageRefresh) selectedSkins.clear();
         List<LocalCache<WardrobeFolder>.Cached> cachedWardrobeFolders = Wardrobe.getInstance().getClientWardrobeFolderCache().getCached(cached -> cached.getValue().getWardrobeTab() == currentTab && cached.getValue().getWardrobeFolderPage() == currentFolderPage);
         List<LocalCache<WardrobeFolder>.Cached> cachedNextWardrobeFolders = Wardrobe.getInstance().getClientWardrobeFolderCache().getCached(cached -> cached.getValue().getWardrobeTab() == currentTab && cached.getValue().getWardrobeFolderPage() == currentFolderPage + 1);
         hasNextFolderPage = cachedNextWardrobeFolders.size() > 0;
@@ -479,6 +494,7 @@ public class WardrobeScreen extends Screen {
                 WardrobeFolder folder = cachedWardrobeFolder.getValue();
                 addButton(new WardrobeFolderButton(this.guiLeft - 52 + 27, this.guiTop - wardrobeHeight / 2 + 10 + (folderIndex * 32), 28, 28, new StringTextComponent(folder.getWardrobeFolderName()), this, folder, p_onPress_1_ -> {
                     currentFolder = folder;
+                    currentPage = 1;
                     refreshPage(true);
                 }));
                 folderIndex++;
@@ -642,10 +658,11 @@ public class WardrobeScreen extends Screen {
         wearSkinButton.visible = selectedSkin != null;
         shareSkinButton.visible = selectedSkin != null && currentTab == WardrobeTab.PERSONAL_WARDROBE;
         openPersonalWardrobeFolder.visible = currentTab == WardrobeTab.PERSONAL_WARDROBE;
-        addSkinButton.visible = currentTab == WardrobeTab.DATABASE_WARDROBE;
         clearSkinButton.visible = !SkinChangerAPI.getPlayerSkin(Minecraft.getInstance().player).getSkinId().isEmpty();
         modifySkinButton.visible = selectedSkin != null;
         addFolderButton.visible = currentTab == WardrobeTab.DATABASE_WARDROBE && !isLoading && currentFolderPage == 1;
+        addSkinButton.visible = currentTab == WardrobeTab.DATABASE_WARDROBE && !isLoading;
+        editFolder.visible = currentTab == WardrobeTab.DATABASE_WARDROBE && !isLoading;
         nextFolderPage.visible = hasNextFolderPage;
         backFolderPage.visible = currentFolderPage > 1;
 
@@ -655,6 +672,7 @@ public class WardrobeScreen extends Screen {
         addSkinButton.active = !isLoading;
         filterButton.active = !isLoading;
         searchField.active = !isLoading;
+        editFolder.active = !currentFolder.equals(WardrobeFolder.MAIN_FOLDER);
 
         searchField.visible = selectedSkins.size() == 0;
         filterButton.visible = selectedSkins.size() == 0;
@@ -736,11 +754,6 @@ public class WardrobeScreen extends Screen {
             blit(matrixStack, this.guiLeft - wardrobeWidth - 52, this.guiTop - wardrobeHeight / 2 + 42, 28, 28, 87, 168, 28, 28, 256, 256);
         }
 
-//        if (selectedSkin != null)
-//        {
-//            blit(matrixStack, guiLeft + 50 - 10 - 50 + 4 + PLAYER_TAB_OFFSET, guiTop - 75 + 4, 12, 12, 39, 170, 12, 12, 256, 256);
-//        }
-
         if (clearSkinButton.visible)
         {
             blit(matrixStack, guiLeft + 50 - 10 + 50 + 5 + PLAYER_TAB_OFFSET, guiTop - 75 + 5, 10, 10, 26, 170, 12, 12, 256, 256);
@@ -753,16 +766,6 @@ public class WardrobeScreen extends Screen {
         minecraft.textureManager.bindTexture(WARDROBE_ICONS);
 
         blit(matrixStack, width / 2 - wardrobeWidth / 2 - 100, height / 2 - wardrobeHeight / 2, wardrobeWidth, wardrobeHeight, 1, 1, 147, 166, 256, 256);
-
-//        if (filterButton.visible)
-//        {
-//            blit(matrixStack, this.guiLeft + 4 - 48, this.guiTop + 4 - 115 - 21, 12, 12, 1, 170, 12, 12, 256, 256);
-//        }
-//
-//        if (refreshButton.visible)
-//        {
-//            blit(matrixStack, this.guiLeft + 4 - 72, this.guiTop + 4 - 115 - 21, 12, 12, 13, 170, 12, 12, 256, 256);
-//        }
 
         if (currentTab == WardrobeTab.DATABASE_WARDROBE) {
             blit(matrixStack, this.guiLeft - wardrobeWidth - 53, this.guiTop - wardrobeHeight / 2 + 10, 32, 28, 116, 168, 32, 28, 256, 256);
