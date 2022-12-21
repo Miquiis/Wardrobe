@@ -10,6 +10,8 @@
   "wardrobe.screen.hover.sort_button.last_updated": "Last Updated",
   "wardrobe.screen.hover.sort_button.slim": "Small Arms",
   "wardrobe.screen.hover.refresh_button": "Refresh Page",
+  "wardrobe.screen.hover.refresh_all_button": "Refresh All",
+  "wardrobe.screen.hover.add_folder_button": "Add Folder",
   "key.wardrobe.group": "Wardrobe",
   "key.wardrobe.open_wardrobe.desc": "Open Wardrobe"
 }

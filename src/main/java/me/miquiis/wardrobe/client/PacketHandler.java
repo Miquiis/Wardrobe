@@ -53,7 +53,11 @@ public class PacketHandler {
         try
         {
             byte[] skinHash = ImageUtils.createImageHash(msg.getSkinBytes());
-            if (!Wardrobe.getInstance().getClientTextureCache().hasCache(cached -> Arrays.equals(cached.getValue().getTextureHash(), skinHash) && cached.getValue().isTextureIsSlim() == msg.isSkinIsSlim() && cached.getValue().isTextureIsBaby() == msg.isSkinIsBaby()))
+            if (!Wardrobe.getInstance().getClientTextureCache().hasCache(cached -> {
+                System.out.println(Arrays.toString(cached.getValue().getTextureBytes()));
+                System.out.println(Arrays.toString(cached.getValue().getTextureHash()));
+                return Arrays.equals(cached.getValue().getTextureHash(), skinHash) && cached.getValue().isTextureIsSlim() == msg.isSkinIsSlim() && cached.getValue().isTextureIsBaby() == msg.isSkinIsBaby();
+            }))
             {
                 Wardrobe.getInstance().getClientTextureCache().cache(new TextureCache(msg.getSkinBytes(), skinHash, msg.isSkinIsSlim(), msg.isSkinIsBaby()));
                 SkinLocation skinLocation = new SkinLocation(ImageUtils.byteToHex(skinHash), "hex:" + ImageUtils.byteToHex(skinHash), msg.isSkinIsSlim(), msg.isSkinIsBaby());

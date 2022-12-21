@@ -56,6 +56,7 @@ public class AddSkinScreen extends Screen implements PopUpScreen.IPopUpScreen {
     public void tick() {
         super.tick();
         skinNameField.tick();
+        skinUrlField.tick();
 
         if (!skinUrlField.getText().equals(lastSearchField))
         {
@@ -63,6 +64,8 @@ public class AddSkinScreen extends Screen implements PopUpScreen.IPopUpScreen {
             tempSkinLocation = new SkinLocation(skinNameField.getText(), skinUrlField.getText(), isSlimBox.isChecked(), isBabyBox.isChecked());
             SkinChangerAPIClient.loadSkin(tempSkinLocation);
         }
+
+        skinUrlField.setEnabled(skinNameField.getText().length() > 0);
     }
 
     public static boolean isValid(String url)

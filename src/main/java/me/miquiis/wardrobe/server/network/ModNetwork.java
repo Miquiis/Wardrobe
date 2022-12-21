@@ -34,6 +34,8 @@ public class ModNetwork {
         CHANNEL.registerMessage(15, DeleteFolderFromDatabasePacket.class, DeleteFolderFromDatabasePacket::encodePacket, DeleteFolderFromDatabasePacket::decodePacket, DeleteFolderFromDatabasePacket::handlePacket);
         CHANNEL.registerMessage(16, RequestFoldersPacket.class, RequestFoldersPacket::encodePacket, RequestFoldersPacket::decodePacket, RequestFoldersPacket::handlePacket);
         CHANNEL.registerMessage(17, SendFoldersPacket.class, SendFoldersPacket::encodePacket, SendFoldersPacket::decodePacket, SendFoldersPacket::handlePacket);
+        CHANNEL.registerMessage(18, RemoveSkinsFromDatabasePacket.class, RemoveSkinsFromDatabasePacket::encodePacket, RemoveSkinsFromDatabasePacket::decodePacket, RemoveSkinsFromDatabasePacket::handlePacket);
+        CHANNEL.registerMessage(19, MoveSkinsToFolderPacket.class, MoveSkinsToFolderPacket::encodePacket, MoveSkinsToFolderPacket::decodePacket, MoveSkinsToFolderPacket::handlePacket);
     }
 
 }

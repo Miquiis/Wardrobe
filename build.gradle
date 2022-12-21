@@ -85,7 +85,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 dependencies {
     minecraft "net.minecraftforge:forge:${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    implementation fg.deobf('curse.maven:skinchangerapi-683061:4081291')
+    implementation fg.deobf('curse.maven:skinchangerapi-683061:4229177')
     implementation fg.deobf('curse.maven:obfuscate-289380:3740120')
     shadow('mysql:mysql-connector-java:8.0.25')
     implementation('mysql:mysql-connector-java:8.0.25')

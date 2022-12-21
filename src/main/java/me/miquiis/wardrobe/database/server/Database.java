@@ -72,6 +72,26 @@ public class Database {
         );
     }
 
+    public CompletableFuture<Void> bulkDeleteSkin(List<SkinLocation> skinLocations)
+    {
+        return mySQL.asyncBatch(skinLocations.stream().map(skinLocation -> {
+            return String.format(
+                    "DELETE FROM " + SKINS_TABLE + " WHERE name='%s'",
+                    skinLocation.getSkinId()
+            );
+        }).toArray(String[]::new));
+    }
+
+    public CompletableFuture<Void> bulkMoveSkinsToFolder(List<SkinLocation> skinLocations, String folder)
+    {
+        return mySQL.asyncBatch(skinLocations.stream().map(skinLocation -> {
+            return String.format(
+                    "UPDATE " + SKINS_TABLE + " SET folder = '%s' WHERE name = '%s';",
+                    folder, skinLocation.getSkinId()
+            );
+        }).toArray(String[]::new));
+    }
+
     public CompletableFuture<Void> createNewFolder(String folderName, String folderItem)
     {
         return mySQL.asyncUpdate(
