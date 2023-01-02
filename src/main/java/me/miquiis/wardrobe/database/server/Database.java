@@ -9,7 +9,9 @@ import me.miquiis.wardrobe.database.LocalCache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,11 +37,22 @@ public class Database {
 
     public void firstBoot()
     {
-        mySQL.asyncBatch(
-                "CREATE TABLE IF NOT EXISTS " + SKINS_TABLE + " (uid int NOT NULL PRIMARY KEY AUTO_INCREMENT, name varchar(255) NOT NULL UNIQUE, url varchar(2048) NOT NULL, folder varchar(255) NOT NULL, slim bool NOT NULL, baby bool NOT NULL)",
-                "CREATE TABLE IF NOT EXISTS " + FOLDERS_TABLE + " (uid int NOT NULL PRIMARY KEY AUTO_INCREMENT, name varchar(255) NOT NULL UNIQUE, item_icon varchar(255) NOT NULL)",
-                "INSERT INTO " + FOLDERS_TABLE + " (name, item_icon) VALUES ('Main Folder', 'chest') ON DUPLICATE KEY UPDATE name=name"
-        );
+        try
+        {
+            mySQL.connect();
+            mySQL.getConnection().setAutoCommit(false);
+            try (Statement preparedStatement = mySQL.getConnection().createStatement())
+            {
+                preparedStatement.addBatch("CREATE TABLE IF NOT EXISTS " + SKINS_TABLE + " (uid int NOT NULL PRIMARY KEY AUTO_INCREMENT, name varchar(255) NOT NULL UNIQUE, url varchar(2048) NOT NULL, folder varchar(255) NOT NULL, slim bool NOT NULL, baby bool NOT NULL)");
+                preparedStatement.addBatch("CREATE TABLE IF NOT EXISTS " + FOLDERS_TABLE + " (uid int NOT NULL PRIMARY KEY AUTO_INCREMENT, name varchar(255) NOT NULL UNIQUE, item_icon varchar(255) NOT NULL)");
+                preparedStatement.addBatch("INSERT INTO " + FOLDERS_TABLE + " (name, item_icon) VALUES ('Main Folder', 'chest') ON DUPLICATE KEY UPDATE name=name");
+            }
+            mySQL.getConnection().commit();
+            mySQL.getConnection().close();
+        } catch (Exception e)
+        {
+
+        }
     }
 
     private String getSortKey(WardrobePage.PageSort pageSort, boolean isAscending)
