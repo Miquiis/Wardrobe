@@ -26,10 +26,13 @@ public class PlayerTabOverlayGuiMixin {
     {
         GameProfile gameprofile = instance.getGameProfile();
         PlayerEntity playerentity = mc.world.getPlayerByUuid(gameprofile.getId());
-        SkinLocation skinLocation = SkinChangerAPI.getPlayerSkin(playerentity);
-        if (skinLocation != null)
+        if (playerentity != null)
         {
-            return skinLocation.getSkinLocation();
+            SkinLocation skinLocation = SkinChangerAPI.getPlayerSkin(playerentity);
+            if (skinLocation != null)
+            {
+                return skinLocation.getSkinLocation();
+            }
         }
         return instance.getLocationSkin();
     }
