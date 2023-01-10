@@ -29,7 +29,7 @@ public class PlayerTabOverlayGuiMixin {
         if (playerentity != null)
         {
             SkinLocation skinLocation = SkinChangerAPI.getPlayerSkin(playerentity);
-            if (skinLocation != null)
+            if (skinLocation != null && !skinLocation.equals(SkinLocation.EMPTY))
             {
                 return skinLocation.getSkinLocation();
             }
